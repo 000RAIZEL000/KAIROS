@@ -14,7 +14,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { createEquipo } from "@/src/api/equipos";
+import { createEquipo } from "../../../src/api/equipos";
 
 export default function CrearEquipoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -56,7 +56,7 @@ export default function CrearEquipoScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -130,10 +130,10 @@ export default function CrearEquipoScreen() {
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#0f172a" />
+              <ActivityIndicator color="#022c22" />
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={22} color="#0f172a" style={{ marginRight: 8 }} />
+                <Ionicons name="checkmark-circle" size={22} color="#022c22" style={{ marginRight: 8 }} />
                 <Text style={styles.buttonText}>Crear Equipo</Text>
               </>
             )}
@@ -145,7 +145,7 @@ export default function CrearEquipoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f1f5f9" },
+  container: { flex: 1, backgroundColor: "#f0fdf4" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
     paddingHorizontal: 20,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 10,
     marginRight: 14,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "800" },
   form: { padding: 20, paddingBottom: 40 },
   label: {
-    color: "#334155",
+    color: "#064e3b",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 6,
@@ -175,14 +175,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#d1fae5",
     paddingHorizontal: 14,
     height: 52,
   },
   inputIcon: { marginRight: 10 },
-  input: { flex: 1, color: "#0f172a", fontSize: 15 },
+  input: { flex: 1, color: "#064e3b", fontSize: 15 },
   button: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     borderRadius: 14,
     height: 56,
     flexDirection: "row",
@@ -190,10 +190,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 30,
     elevation: 4,
-    shadowColor: "#38bdf8",
+    shadowColor: "#34d399",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  buttonText: { color: "#0f172a", fontSize: 17, fontWeight: "800" },
+  buttonText: { color: "#022c22", fontSize: 17, fontWeight: "800" },
 });

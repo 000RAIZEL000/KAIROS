@@ -43,11 +43,12 @@ export async function forgotPassword(email: string): Promise<{ message: string; 
   );
 }
 
-export async function resetPassword(token: string, new_password: string): Promise<{ message: string }> {
+export async function resetPassword(email: string, token: string, new_password: string): Promise<{ message: string }> {
   return extractData(
     api.post("/auth/reset-password", {
+      email,
       token,
       new_password,
     })
   );
-}
+}

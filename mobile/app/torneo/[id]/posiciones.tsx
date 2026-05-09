@@ -12,26 +12,29 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { getTablaPosiciones, getGoleadores } from "@/src/api/stats";
-import type { TablaRow, GoleadorRow } from "@/src/api/stats";
+import { getTablaPosiciones, getGoleadores, getTarjetas } from "../../../src/api/stats";
+import type { TablaRow, GoleadorRow, TarjetaRow } from "../../../src/api/stats";
 
 export default function PosicionesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [tabla, setTabla] = useState<TablaRow[]>([]);
   const [goleadores, setGoleadores] = useState<GoleadorRow[]>([]);
+  const [tarjetas, setTarjetas] = useState<TarjetaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"tabla" | "goleadores">("tabla");
+  const [activeTab, setActiveTab] = useState<"tabla" | "goleadores" | "tarjetas">("tabla");
 
   const cargarDatos = async () => {
     try {
       const tId = String(id);
-      const [tablaData, goleadoresData] = await Promise.all([
+      const [tablaData, goleadoresData, tarjetasData] = await Promise.all([
         getTablaPosiciones(tId),
         getGoleadores(tId),
+        getTarjetas(tId),
       ]);
       setTabla(Array.isArray(tablaData) ? tablaData : []);
       setGoleadores(Array.isArray(goleadoresData) ? goleadoresData : []);
+      setTarjetas(Array.isArray(tarjetasData) ? tarjetasData : []);
     } catch (err: any) {
       console.log("ERROR stats:", err?.message);
     }
@@ -52,7 +55,7 @@ export default function PosicionesScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -71,19 +74,25 @@ export default function PosicionesScreen() {
             style={[styles.tab, activeTab === "goleadores" && styles.activeTab]}
             onPress={() => setActiveTab("goleadores")}
           >
-            <Text style={[styles.tabText, activeTab === "goleadores" && styles.activeTabText]}>Goleadores</Text>
+            <Text style={[styles.tabText, activeTab === "goleadores" && styles.activeTabText]}>Gls</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "tarjetas" && styles.activeTab]}
+            onPress={() => setActiveTab("tarjetas")}
+          >
+            <Text style={[styles.tabText, activeTab === "tarjetas" && styles.activeTabText]}>Tarj.</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#38bdf8" />
+          <ActivityIndicator size="large" color="#34d399" />
         </View>
       ) : (
         <ScrollView
           style={styles.content}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#38bdf8" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />}
         >
           {activeTab === "tabla" ? (
             <View style={styles.tableCard}>
@@ -106,7 +115,7 @@ export default function PosicionesScreen() {
                   <Text style={[styles.columnText, { flex: 1, textAlign: "center", color: (row.dg || 0) >= 0 ? "#22c55e" : "#ef4444" }]}>
                     {(row.dg || 0) > 0 ? `+${row.dg}` : row.dg}
                   </Text>
-                  <Text style={[styles.columnText, { flex: 1, textAlign: "center", fontWeight: "800", color: "#38bdf8" }]}>
+                  <Text style={[styles.columnText, { flex: 1, textAlign: "center", fontWeight: "800", color: "#34d399" }]}>
                     {row.pts}
                   </Text>
                 </View>
@@ -118,10 +127,10 @@ export default function PosicionesScreen() {
                 </View>
               )}
             </View>
-          ) : (
+          ) : activeTab === "goleadores" ? (
             <View style={styles.goleadoresContainer}>
               {goleadores.map((player, index) => (
-                <View key={`${player.jugador_id}-${index}`} style={styles.playerCard}>
+                <View key={`gol-${player.jugador_id || index}`} style={styles.playerCard}>
                   <View style={styles.rankBadge}>
                     <Text style={styles.rankBadgeText}>{index + 1}</Text>
                   </View>
@@ -142,6 +151,41 @@ export default function PosicionesScreen() {
                 </View>
               )}
             </View>
+          ) : (
+            <View style={styles.goleadoresContainer}>
+              {tarjetas.map((player, index) => (
+                <View key={`tarj-${player.jugador_id || index}`} style={styles.playerCard}>
+                  <View style={styles.playerInfo}>
+                    <Text style={styles.playerName}>{player.jugador}</Text>
+                    <Text style={styles.playerEquipo}>{player.equipo}</Text>
+                  </View>
+                  
+                  {/* Tarjetas Amarillas */}
+                  <View style={styles.cardIndicatorRow}>
+                    {player.amarillas > 0 && (
+                      <View style={[styles.cardItem, { backgroundColor: 'rgba(234, 179, 8, 0.15)', borderColor: '#eab308' }]}>
+                        <View style={[styles.cardBox, { backgroundColor: '#eab308' }]} />
+                        <Text style={[styles.cardCount, { color: '#eab308' }]}>{player.amarillas}</Text>
+                      </View>
+                    )}
+                    
+                    {/* Tarjetas Rojas */}
+                    {player.rojas > 0 && (
+                      <View style={[styles.cardItem, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#ef4444' }]}>
+                        <View style={[styles.cardBox, { backgroundColor: '#ef4444' }]} />
+                        <Text style={[styles.cardCount, { color: '#ef4444' }]}>{player.rojas}</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))}
+
+              {tarjetas.length === 0 && (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyText}>No hay registros de tarjetas aún.</Text>
+                </View>
+              )}
+            </View>
           )}
         </ScrollView>
       )}
@@ -150,7 +194,7 @@ export default function PosicionesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f172a" },
+  container: { flex: 1, backgroundColor: "#022c22" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -161,7 +205,7 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 12,
     marginRight: 14,
@@ -179,68 +223,80 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 16,
   },
-  activeTab: { backgroundColor: "#38bdf8" },
-  tabText: { color: "#94a3b8", fontWeight: "700", fontSize: 14 },
-  activeTabText: { color: "#0f172a" },
+  activeTab: { backgroundColor: "#34d399" },
+  tabText: { color: "#a7f3d0", fontWeight: "700", fontSize: 14 },
+  activeTabText: { color: "#022c22" },
   content: { flex: 1, padding: 16 },
   tableCard: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.1)",
+    borderColor: "rgba(52,211,153,0.15)",
   },
   tableHeader: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(148,163,184,0.1)",
+    borderBottomColor: "rgba(52,211,153,0.15)",
     paddingBottom: 12,
     marginBottom: 12,
   },
-  columnLabel: { color: "#64748b", fontSize: 12, fontWeight: "800", textTransform: "uppercase" },
+  columnLabel: { color: "#6ee7b7", fontSize: 12, fontWeight: "800", textTransform: "uppercase" },
   tableRow: {
     flexDirection: "row",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(148,163,184,0.05)",
+    borderBottomColor: "rgba(52,211,153,0.05)",
     alignItems: "center",
   },
-  rankText: { color: "#38bdf8", fontWeight: "800", fontSize: 13, marginRight: 8, width: 22 },
+  rankText: { color: "#34d399", fontWeight: "800", fontSize: 13, marginRight: 8, width: 22 },
   equipoName: { color: "#f8fafc", fontWeight: "700", fontSize: 15 },
   columnText: { color: "#f8fafc", fontWeight: "600", fontSize: 14 },
   emptyState: { alignItems: "center", paddingVertical: 40 },
-  emptyText: { color: "#64748b", fontSize: 16 },
+  emptyText: { color: "#6ee7b7", fontSize: 16 },
   goleadoresContainer: { paddingBottom: 40 },
   playerCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 18,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.1)",
+    borderColor: "rgba(52,211,153,0.15)",
   },
   rankBadge: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
+    backgroundColor: "rgba(52, 211, 153, 0.15)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
-  rankBadgeText: { color: "#38bdf8", fontWeight: "900" },
+  rankBadgeText: { color: "#34d399", fontWeight: "900" },
   playerInfo: { flex: 1 },
   playerName: { color: "#f8fafc", fontSize: 16, fontWeight: "700" },
-  playerEquipo: { color: "#64748b", fontSize: 13, marginTop: 2 },
+  playerEquipo: { color: "#6ee7b7", fontSize: 13, marginTop: 2 },
   goalBadge: {
     alignItems: "center",
-    backgroundColor: "rgba(56, 189, 248, 0.1)",
+    backgroundColor: "rgba(52, 211, 153, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
   },
-  goalCount: { color: "#38bdf8", fontSize: 20, fontWeight: "900" },
-  goalLabel: { color: "#38bdf8", fontSize: 10, fontWeight: "700" },
+  goalCount: { color: "#34d399", fontSize: 20, fontWeight: "900" },
+  goalLabel: { color: "#34d399", fontSize: 10, fontWeight: "700" },
+  cardIndicatorRow: { flexDirection: "row", alignItems: "center" },
+  cardItem: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 8, 
+    borderWidth: 1,
+    marginLeft: 8 
+  },
+  cardBox: { width: 12, height: 16, borderRadius: 2, marginRight: 6 },
+  cardCount: { fontSize: 16, fontWeight: "800" },
 });

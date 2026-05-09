@@ -11,13 +11,15 @@ import {
 import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "@/src/context/AuthContext";
-import { getTorneoById } from "@/src/api/torneos";
-import type { Torneo } from "@/src/types/torneo";
+import { useAuth } from "../../../src/context/AuthContext";
+import { useAppTheme } from "../../../src/context/ThemeContext";
+import { getTorneoById } from "../../../src/api/torneos";
+import type { Torneo } from "../../../src/types/torneo";
 
 export default function TorneoDashboard() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [torneo, setTorneo] = useState<Torneo | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,23 +42,30 @@ export default function TorneoDashboard() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#38bdf8" />
+      <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.replace("/home")} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text style={styles.headerTitle}>{torneo?.nombre || "Campeonato"}</Text>
-            <Text style={styles.headerSub}>Panel Administrativo {user?.role === "admin" ? "(Admin)" : ""}</Text>
+            <Text style={[styles.headerTitle, { color: colors.textOnHeader }]}>{torneo?.nombre || "Campeonato"}</Text>
+            <Text style={[styles.headerSub, { color: colors.textOnHeaderSoft }]}>Panel Administrativo {user?.role === "admin" ? "(Admin)" : ""}</Text>
           </View>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons
+              name={theme === "dark" ? "sunny-outline" : "moon-outline"}
+              size={20}
+              color={colors.textOnHeader}
+            />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -67,7 +76,7 @@ export default function TorneoDashboard() {
             title="Equipos"
             subtitle="Gestiona los clubes inscritos"
             icon="people"
-            color="#3b82f6"
+            color="#059669"
             onPress={() => router.push({ pathname: "/torneo/[id]/equipos", params: { id: String(id) } })}
           />
 
@@ -101,23 +110,23 @@ export default function TorneoDashboard() {
           )}
         </View>
 
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Información del Torneo</Text>
+        <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
+          <Text style={[styles.infoTitle, { color: colors.text }]}>Información del Torneo</Text>
           <View style={styles.infoRow}>
-            <Ionicons name="football-outline" size={18} color="#38bdf8" />
-            <Text style={styles.infoText}>Deporte: {torneo?.deporte}</Text>
+            <Ionicons name="football-outline" size={18} color={colors.accent} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>Deporte: {torneo?.deporte}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="medal-outline" size={18} color="#38bdf8" />
-            <Text style={styles.infoText}>Modalidad: {torneo?.modalidad}</Text>
+            <Ionicons name="medal-outline" size={18} color={colors.accent} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>Modalidad: {torneo?.modalidad}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="location-outline" size={18} color="#38bdf8" />
-            <Text style={styles.infoText}>Dirección: {torneo?.direccion || "No especificada"}</Text>
+            <Ionicons name="location-outline" size={18} color={colors.accent} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>Dirección: {torneo?.direccion || "No especificada"}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Ionicons name="stats-chart-outline" size={18} color="#38bdf8" />
-            <Text style={styles.infoText}>Estado: {torneo?.estado}</Text>
+            <Ionicons name="stats-chart-outline" size={18} color={colors.accent} />
+            <Text style={[styles.infoText, { color: colors.textSecondary }]}>Estado: {torneo?.estado}</Text>
           </View>
         </View>
       </ScrollView>
@@ -126,19 +135,20 @@ export default function TorneoDashboard() {
 }
 
 function DashboardItem({ title, subtitle, icon, color, onPress }: any) {
+  const { colors } = useAppTheme();
   return (
-    <TouchableOpacity style={styles.gridItem} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity style={[styles.gridItem, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.8}>
       <View style={[styles.iconCircle, { backgroundColor: `${color}20` }]}>
         <Ionicons name={icon} size={28} color={color} />
       </View>
-      <Text style={styles.itemTitle}>{title}</Text>
-      <Text style={styles.itemSub}>{subtitle}</Text>
+      <Text style={[styles.itemTitle, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.itemSub, { color: colors.textSecondary }]}>{subtitle}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f1f5f9" },
+  container: { flex: 1, backgroundColor: "#f0fdf4" },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -149,13 +159,18 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 12,
     marginRight: 14,
   },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
-  headerSub: { color: "#94a3b8", fontSize: 13, marginTop: 2 },
+  headerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
+  themeBtn: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    padding: 10,
+    borderRadius: 12,
+  },
   scrollContent: { padding: 20 },
   grid: {
     flexDirection: "row",
@@ -182,15 +197,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  itemTitle: { fontSize: 18, fontWeight: "800", color: "#0f172a" },
+  itemTitle: { fontSize: 18, fontWeight: "800", color: "#064e3b" },
   itemSub: { fontSize: 12, color: "#64748b", marginTop: 4 },
   infoCard: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 24,
     padding: 20,
     marginTop: 10,
   },
   infoTitle: { color: "#f8fafc", fontSize: 18, fontWeight: "800", marginBottom: 16 },
   infoRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  infoText: { color: "#cbd5e1", fontSize: 14, marginLeft: 12, fontWeight: "500" },
+  infoText: { color: "#d1fae5", fontSize: 14, marginLeft: 12, fontWeight: "500" },
 });

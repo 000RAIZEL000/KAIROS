@@ -13,12 +13,12 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "@/src/context/AuthContext";
+import { useAuth } from "../../../src/context/AuthContext";
 import {
   getJugadoresByEquipo,
   deleteJugador,
-} from "@/src/api/jugadores";
-import type { Jugador } from "@/src/api/jugadores";
+} from "../../../src/api/jugadores";
+import type { Jugador } from "../../../src/api/jugadores";
 
 export default function JugadoresScreen() {
   const { id, equipoId } = useLocalSearchParams<{
@@ -112,7 +112,7 @@ export default function JugadoresScreen() {
               })
             }
           >
-            <Ionicons name="create-outline" size={16} color="#3b82f6" />
+            <Ionicons name="create-outline" size={16} color="#059669" />
             <Text style={styles.editBtnText}>Editar</Text>
           </TouchableOpacity>
 
@@ -130,7 +130,7 @@ export default function JugadoresScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -144,7 +144,7 @@ export default function JugadoresScreen() {
 
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="large" color="#38bdf8" style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color="#34d399" style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={jugadores}
@@ -152,7 +152,7 @@ export default function JugadoresScreen() {
             renderItem={renderJugador}
             contentContainerStyle={styles.listContainer}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#38bdf8" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
@@ -178,7 +178,7 @@ export default function JugadoresScreen() {
           }
           activeOpacity={0.8}
         >
-          <Ionicons name="person-add" size={22} color="#0f172a" style={{ marginRight: 6 }} />
+          <Ionicons name="person-add" size={22} color="#022c22" style={{ marginRight: 6 }} />
           <Text style={styles.fabText}>Jugador</Text>
         </TouchableOpacity>
       )}
@@ -187,7 +187,7 @@ export default function JugadoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f1f5f9" },
+  container: { flex: 1, backgroundColor: "#f0fdf4" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
     paddingHorizontal: 20,
@@ -197,13 +197,13 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 10,
     marginRight: 14,
   },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "800" },
-  headerSub: { color: "#94a3b8", fontSize: 13, marginTop: 2 },
+  headerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   listContainer: { paddingBottom: 100 },
   card: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#d1fae5",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -224,12 +224,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#0f172a",
+    backgroundColor: "#064e3b",
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { color: "#38bdf8", fontWeight: "800", fontSize: 16 },
-  playerName: { fontSize: 16, fontWeight: "700", color: "#0f172a" },
+  avatarText: { color: "#34d399", fontWeight: "800", fontSize: 16 },
+  playerName: { fontSize: 16, fontWeight: "700", color: "#064e3b" },
   playerInfo: { fontSize: 13, color: "#64748b", marginTop: 2 },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
   cardActions: {
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
+    borderTopColor: "#ecfdf5",
     gap: 10,
   },
   editBtn: {
@@ -247,9 +247,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#ecfdf5",
   },
-  editBtnText: { color: "#3b82f6", fontWeight: "700", marginLeft: 4 },
+  editBtnText: { color: "#059669", fontWeight: "700", marginLeft: 4 },
   deleteBtn: {
     flex: 1,
     flexDirection: "row",
@@ -262,22 +262,22 @@ const styles = StyleSheet.create({
   deleteBtnText: { color: "#ef4444", fontWeight: "700", marginLeft: 4 },
   emptyContainer: { alignItems: "center", marginTop: 60 },
   emptyText: { color: "#94a3b8", fontSize: 16, marginTop: 16, textAlign: "center" },
-  emptyHint: { color: "#38bdf8", fontSize: 13, marginTop: 8 },
+  emptyHint: { color: "#34d399", fontSize: 13, marginTop: 8 },
   fab: {
     position: "absolute",
     bottom: 24,
     right: 24,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     paddingHorizontal: 20,
     height: 56,
     borderRadius: 28,
     elevation: 8,
-    shadowColor: "#38bdf8",
+    shadowColor: "#34d399",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  fabText: { color: "#0f172a", fontSize: 16, fontWeight: "800" },
+  fabText: { color: "#022c22", fontSize: 16, fontWeight: "800" },
 });

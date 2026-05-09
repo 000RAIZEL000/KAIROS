@@ -8,15 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.core.security import get_password_hash, verify_password
+from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.config import settings
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-# 🔐 CONFIG
-SECRET_KEY = "kairos-secret-key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
-RESET_TOKEN_EXPIRE_MINUTES = 30
 
 
 # 📦 DB
@@ -46,26 +42,9 @@ class ForgotPasswordRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
+    email: EmailStr
     token: str
     new_password: str
-
-
-# 🔑 TOKEN
-def create_token(data: dict, expires_minutes: int) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def decode_token(token: str) -> dict:
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
-        )
 
 
 # ✅ REGISTER
@@ -89,10 +68,10 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    access_token = create_token(
-        {"sub": user.email, "user_id": user.id, "type": "access"},
-        ACCESS_TOKEN_EXPIRE_MINUTES,
+    access_token = create_access_token(
+        {"sub": str(user.id), "email": user.email, "type": "access"}
     )
+
 
     return {
         "access_token": access_token,
@@ -122,10 +101,10 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not user.activo:
         raise HTTPException(status_code=403, detail="Usuario inactivo")
 
-    access_token = create_token(
-        {"sub": user.email, "user_id": user.id, "type": "access"},
-        ACCESS_TOKEN_EXPIRE_MINUTES,
+    access_token = create_access_token(
+        {"sub": str(user.id), "email": user.email, "type": "access"}
     )
+
 
     return {
         "access_token": access_token,
@@ -153,39 +132,55 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
 
     if not user:
-        return {"message": "Si el correo existe, se generó un token"}
+        print(f"⚠️  SOLICITUD DE RECUPERACIÓN: Email '{data.email}' NO encontrado en la base de datos.")
+        return {"message": "Si el correo coincide, recibirás un token"}
 
-    reset_token = create_token(
-        {"sub": user.email, "user_id": user.id, "type": "reset"},
-        RESET_TOKEN_EXPIRE_MINUTES,
-    )
 
-    # 🔥 IMPRIME EN TERMINAL
-    print("\n🔐 ===== RECUPERACIÓN DE CONTRASEÑA =====")
-    print(f"📧 Email: {user.email}")
-    print(f"🔑 Token: {reset_token}")
-    print("========================================\n")
+    # Token estático para simplificar pruebas en desarrollo (solicitud del usuario)
+    otp = "1234"
+    user.otp_code = otp
+    user.otp_expiration = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    db.commit()
+
+    # 🔥 IMPRIME EN TERMINAL (Mensaje solicitado por el usuario)
+    print("\n-------------------------------------------")
+    print(f"Aca esta el numero de confirmacion: {otp}")
+    print(f"Para el usuario: {user.email}")
+    print("-------------------------------------------\n")
+
 
     return {
-        "message": "Se generó el token (revisar terminal)"
+        "message": "Se generó el código",
+        "email": user.email,
+        "token": otp
     }
+
 
 
 # 🔁 RESET PASSWORD
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
-    payload = decode_token(data.token)
-
-    if payload.get("type") != "reset":
-        raise HTTPException(status_code=400, detail="Token inválido")
-
-    user_id = payload.get("user_id")
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.email == data.email).first()
 
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
+    # Validar código
+    if not user.otp_code or user.otp_code != data.token:
+        raise HTTPException(status_code=400, detail="Código de validación incorrecto")
+
+    # Validar expiración
+    if not user.otp_expiration or datetime.now(timezone.utc) > user.otp_expiration.replace(tzinfo=timezone.utc):
+        raise HTTPException(status_code=400, detail="El código ha expirado")
+
+    # Actualizar contraseña
     user.password_hash = get_password_hash(data.new_password)
+    
+    # Limpiar el código usado
+    user.otp_code = None
+    user.otp_expiration = None
+    
     db.commit()
 
-    return {"message": "Contraseña actualizada correctamente"}
+    return {"message": "Contraseña actualizada correctamente"}

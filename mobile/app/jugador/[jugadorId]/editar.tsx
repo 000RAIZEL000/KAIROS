@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { getJugadorById, updateJugador } from "@/src/api/jugadores";
+import { getJugadorById, updateJugador } from "../../../src/api/jugadores";
 
 export default function EditarJugadorScreen() {
   const { jugadorId, equipoId, torneoId } = useLocalSearchParams<{
@@ -87,12 +87,12 @@ export default function EditarJugadorScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: "#f3f4f6",
+          backgroundColor: "#f0fdf4",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <Text>Cargando jugador...</Text>
+        <Text style={{ color: "#064e3b" }}>Cargando jugador...</Text>
       </View>
     );
   }
@@ -101,15 +101,15 @@ export default function EditarJugadorScreen() {
     <ScrollView
       contentContainerStyle={{
         padding: 16,
-        backgroundColor: "#f3f4f6",
+        backgroundColor: "#f0fdf4",
         flexGrow: 1,
       }}
     >
-      <Text style={{ fontSize: 24, fontWeight: "800", marginBottom: 18 }}>
+      <Text style={{ fontSize: 24, fontWeight: "800", marginBottom: 18, color: "#064e3b" }}>
         Editar jugador
       </Text>
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Nombre</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Nombre</Text>
       <TextInput
         value={nombre}
         onChangeText={setNombre}
@@ -117,7 +117,7 @@ export default function EditarJugadorScreen() {
         style={inputStyle}
       />
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Apellido</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Apellido</Text>
       <TextInput
         value={apellido}
         onChangeText={setApellido}
@@ -125,7 +125,7 @@ export default function EditarJugadorScreen() {
         style={inputStyle}
       />
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Posición</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Posición</Text>
       <TextInput
         value={posicion}
         onChangeText={setPosicion}
@@ -133,7 +133,7 @@ export default function EditarJugadorScreen() {
         style={inputStyle}
       />
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Número de camiseta</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Número de camiseta</Text>
       <TextInput
         value={numeroCamiseta}
         onChangeText={setNumeroCamiseta}
@@ -151,17 +151,19 @@ export default function EditarJugadorScreen() {
           borderRadius: 12,
           padding: 14,
           marginBottom: 18,
+          borderWidth: 1,
+          borderColor: "#d1fae5",
         }}
       >
-        <Text style={{ fontWeight: "700" }}>Activo</Text>
-        <Switch value={activo} onValueChange={setActivo} />
+        <Text style={{ fontWeight: "700", color: "#064e3b" }}>Activo</Text>
+        <Switch value={activo} onValueChange={setActivo} trackColor={{ true: "#34d399" }} />
       </View>
 
       <Pressable
         onPress={handleGuardar}
         disabled={loading}
         style={{
-          backgroundColor: "#1d4ed8",
+          backgroundColor: "#059669",
           paddingVertical: 16,
           borderRadius: 14,
           alignItems: "center",
@@ -178,9 +180,10 @@ export default function EditarJugadorScreen() {
 const inputStyle = {
   backgroundColor: "#fff",
   borderWidth: 1,
-  borderColor: "#d1d5db",
+  borderColor: "#d1fae5",
   borderRadius: 12,
   paddingHorizontal: 14,
   paddingVertical: 14,
   marginBottom: 14,
+  color: "#064e3b",
 };

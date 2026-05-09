@@ -1,7 +1,7 @@
 from app.db.session import SessionLocal, engine
 from app.models import Base
 from app.models.user import User
-from app.core.security import hash_password
+from app.core.security import get_password_hash
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,7 +15,8 @@ if not existing:
     admin = User(
         nombre="Administrador",
         email=email,
-        password_hash=hash_password("123456"),
+        password_hash=get_password_hash("123456"),
+
         role="admin",
         activo=True,
     )

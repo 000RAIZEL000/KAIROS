@@ -14,9 +14,9 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { getEquiposByTorneo } from "@/src/api/equipos";
-import type { Equipo } from "@/src/api/equipos";
-import { createPartido } from "@/src/api/partidos";
+import { getEquiposByTorneo } from "../../../src/api/equipos";
+import type { Equipo } from "../../../src/api/equipos";
+import { createPartido } from "../../../src/api/partidos";
 
 export default function CrearPartidoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -77,14 +77,14 @@ export default function CrearPartidoScreen() {
   if (fetching) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#38bdf8" />
+        <ActivityIndicator size="large" color="#34d399" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -127,7 +127,7 @@ export default function CrearPartidoScreen() {
             <TextInput
               style={styles.input}
               placeholder="2023-12-31"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#6ee7b7"
               value={fecha}
               onChangeText={setFecha}
             />
@@ -138,7 +138,7 @@ export default function CrearPartidoScreen() {
             <TextInput
               style={styles.input}
               placeholder="Cancha Central"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor="#6ee7b7"
               value={cancha}
               onChangeText={setCancha}
             />
@@ -150,7 +150,7 @@ export default function CrearPartidoScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#0f172a" />
+              <ActivityIndicator color="#022c22" />
             ) : (
               <Text style={styles.buttonText}>Programar Encuentro</Text>
             )}
@@ -164,7 +164,7 @@ export default function CrearPartidoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f172a" },
+  container: { flex: 1, backgroundColor: "#022c22" },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -175,48 +175,48 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 12,
     marginRight: 14,
   },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
   form: { padding: 20 },
-  label: { color: "#cbd5e1", fontSize: 13, fontWeight: "700", marginBottom: 10, marginTop: 16, textTransform: "uppercase" },
+  label: { color: "#d1fae5", fontSize: 13, fontWeight: "700", marginBottom: 10, marginTop: 16, textTransform: "uppercase" },
   pickerContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pickerItem: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.1)",
+    borderColor: "rgba(52,211,153,0.15)",
   },
-  pickerItemActive: { backgroundColor: "#38bdf8", borderColor: "#38bdf8" },
-  pickerText: { color: "#94a3b8", fontWeight: "600", fontSize: 14 },
-  pickerTextActive: { color: "#0f172a" },
+  pickerItemActive: { backgroundColor: "#34d399", borderColor: "#34d399" },
+  pickerText: { color: "#a7f3d0", fontWeight: "600", fontSize: 14 },
+  pickerTextActive: { color: "#022c22" },
   inputContainer: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.1)",
+    borderColor: "rgba(52,211,153,0.15)",
     paddingHorizontal: 16,
     height: 52,
     justifyContent: "center",
   },
   input: { color: "#f8fafc", fontSize: 16 },
   button: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     borderRadius: 16,
     height: 58,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 34,
     elevation: 4,
-    shadowColor: "#38bdf8",
+    shadowColor: "#34d399",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  buttonText: { color: "#0f172a", fontSize: 17, fontWeight: "900" },
+  buttonText: { color: "#022c22", fontSize: 17, fontWeight: "900" },
 });

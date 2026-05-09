@@ -40,10 +40,15 @@ def get_current_user(
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido",
+            detail="Token inválido (sin identificador)",
         )
 
-    user = db.query(User).filter(User.id == int(user_id), User.activo == True).first()
+    # El sub puede ser un ID (numero) o un Email (string) por compatibilidad
+    if str(user_id).isdigit():
+        user = db.query(User).filter(User.id == int(user_id), User.activo == True).first()
+    else:
+        user = db.query(User).filter(User.email == str(user_id), User.activo == True).first()
+
 
     if not user:
         raise HTTPException(

@@ -5,7 +5,7 @@ import React, {
   useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "@/src/api/client";
+import api from "../../src/api/client";
 import { router } from "expo-router";
 
 type AuthUser = {

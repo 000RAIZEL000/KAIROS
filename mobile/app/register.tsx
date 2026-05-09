@@ -12,13 +12,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@/src/context/AuthContext";
-import { registerRequest } from "@/src/api/auth";
+import { useAuth } from "../src/context/AuthContext";
+import { useAppTheme } from "../src/context/ThemeContext";
+import { registerRequest } from "../src/api/auth";
 
 export default function RegisterScreen() {
   const { login } = useAuth();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -47,7 +49,7 @@ export default function RegisterScreen() {
       Alert.alert(
         "¡Bienvenido!", 
         `Hola ${res.user.nombre}, tu cuenta ha sido creada y ya puedes empezar.`,
-        [{ text: "Comenzar", onPress: () => router.replace("/home") }]
+        [{ text: "Comenzar", onPress: () => router.replace("/auth-loading") }]
       );
     } catch (error: any) {
       const msg = error?.response?.data?.detail || "No se pudo registrar. Intenta de nuevo.";
@@ -58,24 +60,33 @@ export default function RegisterScreen() {
   };
 
   return (
-    <LinearGradient colors={["#0f172a", "#1e293b", "#0f172a"]} style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.authBg }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <View style={styles.headerSection}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="person-add" size={36} color="#38bdf8" />
+            <View style={styles.headerTopRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="person-add" size={36} color="#34d399" />
+              </View>
+              <TouchableOpacity onPress={toggleTheme} style={styles.themeToggleBtn}>
+                <Ionicons
+                  name={theme === "dark" ? "sunny-outline" : "moon-outline"}
+                  size={22}
+                  color={colors.textOnHeader}
+                />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.title}>Crear Cuenta</Text>
-            <Text style={styles.subtitle}>Regístrate para acceder a todos los campeonatos</Text>
+            <Text style={[styles.title, { color: colors.textOnHeader }]}>Crear Cuenta</Text>
+            <Text style={[styles.subtitle, { color: colors.textOnHeaderSoft }]}>Regístrate para acceder a todos los campeonatos</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.glassCard, borderColor: colors.glassCardBorder }]}>
             {/* Nombre */}
-            <Text style={styles.label}>Nombre completo</Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Nombre completo</Text>
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
               <Ionicons name="person-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -87,8 +98,8 @@ export default function RegisterScreen() {
             </View>
 
             {/* Email */}
-            <Text style={styles.label}>Correo electrónico</Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Correo electrónico</Text>
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
               <Ionicons name="mail-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -102,8 +113,8 @@ export default function RegisterScreen() {
             </View>
 
             {/* Teléfono */}
-            <Text style={styles.label}>Teléfono </Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Teléfono </Text>
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
               <Ionicons name="call-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
@@ -116,8 +127,8 @@ export default function RegisterScreen() {
             </View>
 
             {/* Contraseña */}
-            <Text style={styles.label}>Contraseña</Text>
-            <View style={styles.inputContainer}>
+            <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Contraseña</Text>
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
               <Ionicons name="lock-closed-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
@@ -140,9 +151,9 @@ export default function RegisterScreen() {
               activeOpacity={0.8}
             >
               {loading ? (
-                <ActivityIndicator color="#0f172a" />
+                <ActivityIndicator color={colors.fabText} />
               ) : (
-                <Text style={styles.buttonText}>Crear Cuenta</Text>
+                <Text style={[styles.buttonText, { color: colors.fabText }]}>Crear Cuenta</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -154,7 +165,7 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -167,11 +178,20 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   headerSection: { alignItems: "center", marginBottom: 28 },
+  headerTopRow: { flexDirection: "row", width: "100%", justifyContent: "center", alignItems: "center", position: "relative" },
+  themeToggleBtn: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    padding: 10,
+    borderRadius: 12,
+  },
   iconCircle: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
+    backgroundColor: "rgba(52, 211, 153, 0.15)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -179,35 +199,35 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "800", color: "#f8fafc", marginBottom: 6 },
   subtitle: { fontSize: 14, color: "#94a3b8", textAlign: "center" },
   card: {
-    backgroundColor: "rgba(30, 41, 59, 0.85)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.15)",
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   label: { color: "#cbd5e1", fontSize: 13, fontWeight: "600", marginBottom: 6, marginTop: 12 },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    backgroundColor: "rgba(2, 44, 34, 0.6)",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.2)",
+    borderColor: "rgba(52, 211, 153, 0.2)",
     paddingHorizontal: 14,
     height: 50,
   },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, color: "#f8fafc", fontSize: 15 },
   button: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     borderRadius: 14,
     height: 52,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 24,
   },
-  buttonText: { color: "#0f172a", fontSize: 16, fontWeight: "800" },
+  buttonText: { color: "#022c22", fontSize: 16, fontWeight: "800" },
   linkContainer: { flexDirection: "row", justifyContent: "center", marginTop: 20 },
   linkText: { color: "#94a3b8", fontSize: 14 },
-  linkHighlight: { color: "#38bdf8", fontSize: 14, fontWeight: "700" },
+  linkHighlight: { color: "#34d399", fontSize: 14, fontWeight: "700" },
 });

@@ -12,9 +12,9 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "@/src/context/AuthContext";
-import { getPartidos } from "@/src/api/partidos";
-import type { Partido } from "@/src/api/partidos";
+import { useAuth } from "../../../src/context/AuthContext";
+import { getPartidos } from "../../../src/api/partidos";
+import type { Partido } from "../../../src/api/partidos";
 
 export default function PartidosScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -88,14 +88,14 @@ export default function PartidosScreen() {
 
       {item.cancha && (
         <View style={styles.canchaRow}>
-          <Ionicons name="location-outline" size={14} color="#94a3b8" />
+          <Ionicons name="location-outline" size={14} color="#a7f3d0" />
           <Text style={styles.canchaText}>{item.cancha}</Text>
         </View>
       )}
 
       {user?.role === "admin" && (
         <View style={styles.adminHint}>
-          <Ionicons name="settings-outline" size={14} color="#38bdf8" />
+          <Ionicons name="settings-outline" size={14} color="#34d399" />
           <Text style={styles.adminHintText}>Toca para gestionar resultados y eventos</Text>
         </View>
       )}
@@ -113,7 +113,7 @@ export default function PartidosScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -127,7 +127,7 @@ export default function PartidosScreen() {
 
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="large" color="#38bdf8" style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color="#34d399" style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={partidos}
@@ -135,11 +135,11 @@ export default function PartidosScreen() {
             renderItem={renderPartido}
             contentContainerStyle={styles.listContainer}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#38bdf8" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Ionicons name="calendar-outline" size={60} color="#334155" />
+                <Ionicons name="calendar-outline" size={60} color="#065f46" />
                 <Text style={styles.emptyText}>No hay partidos programados en este torneo.</Text>
                 {user?.role === "admin" && (
                   <Text style={styles.emptyHint}>Toca el botón "+" para programar uno.</Text>
@@ -161,7 +161,7 @@ export default function PartidosScreen() {
           }
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={26} color="#0f172a" style={{ marginRight: 4 }} />
+          <Ionicons name="add" size={26} color="#022c22" style={{ marginRight: 4 }} />
           <Text style={styles.fabText}>Partido</Text>
         </TouchableOpacity>
       )}
@@ -170,7 +170,7 @@ export default function PartidosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f172a" },
+  container: { flex: 1, backgroundColor: "#022c22" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
     paddingHorizontal: 20,
@@ -180,22 +180,22 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 12,
     marginRight: 14,
   },
   headerTitle: { color: "#f8fafc", fontSize: 24, fontWeight: "900" },
-  headerSub: { color: "#94a3b8", fontSize: 13, marginTop: 2 },
+  headerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
   content: { flex: 1, paddingHorizontal: 16 },
   listContainer: { paddingVertical: 20, paddingBottom: 100 },
   card: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.1)",
+    borderColor: "rgba(52, 211, 153, 0.15)",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -208,10 +208,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(148, 163, 184, 0.05)",
+    borderBottomColor: "rgba(52, 211, 153, 0.08)",
     paddingBottom: 8,
   },
-  fechaText: { color: "#94a3b8", fontSize: 12, fontWeight: "700" },
+  fechaText: { color: "#a7f3d0", fontSize: 12, fontWeight: "700" },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -228,47 +228,47 @@ const styles = StyleSheet.create({
   teamName: { color: "#f8fafc", fontSize: 16, fontWeight: "800" },
   scoreSection: {
     flex: 1,
-    backgroundColor: "rgba(56, 189, 248, 0.1)",
+    backgroundColor: "rgba(52, 211, 153, 0.1)",
     paddingVertical: 8,
     borderRadius: 12,
     alignItems: "center",
     marginHorizontal: 10,
   },
-  scoreText: { color: "#38bdf8", fontSize: 20, fontWeight: "900" },
+  scoreText: { color: "#34d399", fontSize: 20, fontWeight: "900" },
   canchaRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.05)",
+    borderTopColor: "rgba(52, 211, 153, 0.08)",
   },
-  canchaText: { color: "#64748b", fontSize: 12, marginLeft: 6 },
+  canchaText: { color: "#6ee7b7", fontSize: 12, marginLeft: 6 },
   adminHint: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 10,
     justifyContent: "center",
   },
-  adminHintText: { color: "#38bdf8", fontSize: 11, fontWeight: "600", marginLeft: 4 },
+  adminHintText: { color: "#34d399", fontSize: 11, fontWeight: "600", marginLeft: 4 },
   emptyContainer: { alignItems: "center", marginTop: 60 },
-  emptyText: { color: "#64748b", fontSize: 16, marginTop: 16, textAlign: "center" },
-  emptyHint: { color: "#38bdf8", fontSize: 13, marginTop: 8 },
+  emptyText: { color: "#6ee7b7", fontSize: 16, marginTop: 16, textAlign: "center" },
+  emptyHint: { color: "#34d399", fontSize: 13, marginTop: 8 },
   fab: {
     position: "absolute",
     bottom: 24,
     right: 24,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     paddingHorizontal: 20,
     height: 56,
     borderRadius: 28,
     elevation: 8,
-    shadowColor: "#38bdf8",
+    shadowColor: "#34d399",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  fabText: { color: "#0f172a", fontSize: 16, fontWeight: "800" },
+  fabText: { color: "#022c22", fontSize: 16, fontWeight: "800" },
 });

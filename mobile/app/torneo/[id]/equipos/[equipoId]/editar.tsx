@@ -14,7 +14,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { getEquipoById, updateEquipo } from "@/src/api/equipos";
+import { getEquipoById, updateEquipo } from "../../../../../src/api/equipos";
 
 export default function EditarEquipoScreen() {
   const { id, equipoId } = useLocalSearchParams<{ id: string; equipoId: string }>();
@@ -71,14 +71,14 @@ export default function EditarEquipoScreen() {
   if (fetching) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#38bdf8" />
+        <ActivityIndicator size="large" color="#34d399" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -142,7 +142,7 @@ export default function EditarEquipoScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#0f172a" />
+              <ActivityIndicator color="#022c22" />
             ) : (
               <Text style={styles.buttonText}>Actualizar Equipo</Text>
             )}
@@ -154,7 +154,7 @@ export default function EditarEquipoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f1f5f9" },
+  container: { flex: 1, backgroundColor: "#f0fdf4" },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 10,
     marginRight: 14,
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   headerTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "800" },
   form: { padding: 20, paddingBottom: 40 },
   label: {
-    color: "#334155",
+    color: "#064e3b",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 6,
@@ -183,14 +183,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#d1fae5",
     paddingHorizontal: 14,
     height: 52,
     justifyContent: "center",
   },
-  input: { color: "#0f172a", fontSize: 16 },
+  input: { color: "#064e3b", fontSize: 16 },
   button: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     borderRadius: 14,
     height: 56,
     justifyContent: "center",
@@ -198,5 +198,5 @@ const styles = StyleSheet.create({
     marginTop: 30,
     elevation: 4,
   },
-  buttonText: { color: "#0f172a", fontSize: 17, fontWeight: "800" },
+  buttonText: { color: "#022c22", fontSize: 17, fontWeight: "800" },
 });

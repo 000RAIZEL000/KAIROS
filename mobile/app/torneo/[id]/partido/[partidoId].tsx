@@ -14,12 +14,12 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { getPartido, updatePartido } from "@/src/api/partidos";
-import { getJugadoresByEquipo } from "@/src/api/jugadores";
-import { createEvento, getEventosByPartido, deleteEvento } from "@/src/api/eventos";
-import type { Partido } from "@/src/api/partidos";
-import type { Jugador } from "@/src/api/jugadores";
-import type { Evento } from "@/src/api/eventos";
+import { getPartido, updatePartido } from "../../../../src/api/partidos";
+import { getJugadoresByEquipo } from "../../../../src/api/jugadores";
+import { createEvento, getEventosByPartido, deleteEvento } from "../../../../src/api/eventos";
+import type { Partido } from "../../../../src/api/partidos";
+import type { Jugador } from "../../../../src/api/jugadores";
+import type { Evento } from "../../../../src/api/eventos";
 
 export default function GestionarPartidoScreen() {
   const { id: torneoId, partidoId } = useLocalSearchParams<{ id: string; partidoId: string }>();
@@ -108,14 +108,14 @@ export default function GestionarPartidoScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#38bdf8" />
+        <ActivityIndicator size="large" color="#34d399" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -185,7 +185,7 @@ export default function GestionarPartidoScreen() {
               <Ionicons 
                 name={ev.tipo_evento === "gol" ? "football" : "square"} 
                 size={18} 
-                color={ev.tipo_evento === "gol" ? "#38bdf8" : ev.tipo_evento === "amarilla" ? "#fbbf24" : "#ef4444"} 
+                color={ev.tipo_evento === "gol" ? "#34d399" : ev.tipo_evento === "amarilla" ? "#fbbf24" : "#ef4444"} 
               />
               <Text style={styles.eventText}>
                 <Text style={{ fontWeight: "800" }}>{ev.tipo_evento.toUpperCase()}</Text> - {ev.jugador_id ? `${jugadoresLocal.find(j => j.id === ev.jugador_id)?.nombre || jugadoresVisit.find(j => j.id === ev.jugador_id)?.nombre}` : "Equipo"}
@@ -227,7 +227,7 @@ function PlayerEventItem({ player, onAdd }: { player: Jugador, onAdd: any }) {
       <Text style={styles.playerItemName}>{player.nombre} {player.apellido}</Text>
       <View style={styles.playerActions}>
         <TouchableOpacity style={styles.actionIcon} onPress={() => onAdd(player, "gol")}>
-          <Ionicons name="football" size={20} color="#38bdf8" />
+          <Ionicons name="football" size={20} color="#34d399" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionIcon} onPress={() => onAdd(player, "amarilla")}>
           <Ionicons name="square" size={20} color="#fbbf24" />
@@ -241,7 +241,7 @@ function PlayerEventItem({ player, onAdd }: { player: Jugador, onAdd: any }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f172a" },
+  container: { flex: 1, backgroundColor: "#022c22" },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 12,
     marginRight: 14,
@@ -260,55 +260,55 @@ const styles = StyleSheet.create({
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
   scroll: { padding: 16 },
   scoreCard: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.1)",
+    borderColor: "rgba(52,211,153,0.15)",
   },
   teamsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
   teamInfo: { flex: 1 },
   teamLabel: { color: "#64748b", fontSize: 11, fontWeight: "800", textTransform: "uppercase", marginBottom: 4 },
   teamTitle: { color: "#f8fafc", fontSize: 16, fontWeight: "800", marginBottom: 10 },
   scoreInput: {
-    backgroundColor: "#0f172a",
-    color: "#38bdf8",
+    backgroundColor: "#022c22",
+    color: "#34d399",
     fontSize: 28,
     fontWeight: "900",
     textAlign: "center",
     borderRadius: 12,
     height: 60,
     borderWidth: 1,
-    borderColor: "rgba(56, 189, 248, 0.3)",
+    borderColor: "rgba(52, 211, 153, 0.3)",
   },
-  vsText: { color: "#334155", fontSize: 24, fontWeight: "900", marginHorizontal: 10, marginTop: 30 },
-  label: { color: "#cbd5e1", fontSize: 12, fontWeight: "700", marginTop: 20, marginBottom: 10, textTransform: "uppercase" },
+  vsText: { color: "#065f46", fontSize: 24, fontWeight: "900", marginHorizontal: 10, marginTop: 30 },
+  label: { color: "#d1fae5", fontSize: 12, fontWeight: "700", marginTop: 20, marginBottom: 10, textTransform: "uppercase" },
   statusRow: { flexDirection: "row", gap: 10 },
   statusOption: {
     flex: 1,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#0f172a",
+    backgroundColor: "#022c22",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.1)",
+    borderColor: "rgba(52,211,153,0.15)",
   },
-  statusOptionActive: { backgroundColor: "#38bdf8", borderColor: "#38bdf8" },
-  statusOptionText: { color: "#94a3b8", fontSize: 12, fontWeight: "700" },
-  statusOptionTextActive: { color: "#0f172a" },
+  statusOptionActive: { backgroundColor: "#34d399", borderColor: "#34d399" },
+  statusOptionText: { color: "#a7f3d0", fontSize: 12, fontWeight: "700" },
+  statusOptionTextActive: { color: "#022c22" },
   updateBtn: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     borderRadius: 14,
     height: 52,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 24,
   },
-  updateBtnText: { color: "#0f172a", fontSize: 15, fontWeight: "800" },
+  updateBtnText: { color: "#022c22", fontSize: 15, fontWeight: "800" },
   sectionTitle: { color: "#f8fafc", fontSize: 18, fontWeight: "800", marginTop: 30, marginBottom: 14 },
-  subTitle: { color: "#38bdf8", fontSize: 14, fontWeight: "800", marginTop: 16, marginBottom: 8, textTransform: "uppercase" },
+  subTitle: { color: "#34d399", fontSize: 14, fontWeight: "800", marginTop: 16, marginBottom: 8, textTransform: "uppercase" },
   eventsCard: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 16,
     padding: 16,
   },
@@ -317,12 +317,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(148,163,184,0.05)",
+    borderBottomColor: "rgba(52,211,153,0.05)",
   },
   eventText: { flex: 1, color: "#cbd5e1", fontSize: 14, marginLeft: 12 },
   emptyText: { color: "#64748b", fontSize: 14, textAlign: "center", paddingVertical: 10 },
   playersList: {
-    backgroundColor: "#1e293b",
+    backgroundColor: "#064e3b",
     borderRadius: 16,
     padding: 8,
   },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   playerActions: { flexDirection: "row", gap: 15 },
   actionIcon: {
     padding: 6,
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(52,211,153,0.08)",
     borderRadius: 8,
   },
 });

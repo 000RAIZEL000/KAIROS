@@ -14,7 +14,7 @@ import {
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { createTorneo } from "@/src/api/torneos";
+import { createTorneo } from "../../src/api/torneos";
 
 export default function CrearTorneoScreen() {
   const [nombre, setNombre] = useState("");
@@ -51,7 +51,7 @@ export default function CrearTorneoScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#f8fafc" />
@@ -117,7 +117,7 @@ export default function CrearTorneoScreen() {
               activeOpacity={0.8}
             >
               {loading ? (
-                <ActivityIndicator color="#0f172a" />
+                <ActivityIndicator color="#022c22" />
               ) : (
                 <Text style={styles.buttonText}>Crear Campeonato</Text>
               )}
@@ -132,7 +132,7 @@ export default function CrearTorneoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#f0fdf4",
   },
   keyboardView: {
     flex: 1,
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   backBtn: {
     padding: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(52, 211, 153, 0.1)",
     borderRadius: 12,
   },
   headerTitle: {
@@ -185,19 +185,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#334155",
+    color: "#064e3b",
     marginBottom: 8,
     marginLeft: 4,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#f0fdf4",
     borderRadius: 14,
     paddingHorizontal: 16,
     height: 56,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#d1fae5",
   },
   inputIcon: {
     marginRight: 12,
@@ -205,29 +205,29 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: "100%",
-    color: "#0f172a",
+    color: "#064e3b",
     fontSize: 16,
   },
   button: {
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     height: 56,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
-    shadowColor: "#38bdf8",
+    shadowColor: "#34d399",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: "#bae6fd",
+    backgroundColor: "#a7f3d0",
     shadowOpacity: 0,
     elevation: 0,
   },
   buttonText: {
-    color: "#0f172a",
+    color: "#022c22",
     fontSize: 17,
     fontWeight: "800",
   },

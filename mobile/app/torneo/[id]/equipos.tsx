@@ -13,9 +13,9 @@ import {
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "@/src/context/AuthContext";
-import { getEquiposByTorneo, deleteEquipo } from "@/src/api/equipos";
-import type { Equipo } from "@/src/api/equipos";
+import { useAuth } from "../../../src/context/AuthContext";
+import { getEquiposByTorneo, deleteEquipo } from "../../../src/api/equipos";
+import type { Equipo } from "../../../src/api/equipos";
 
 export default function EquiposScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -82,7 +82,7 @@ export default function EquiposScreen() {
         }
       >
         <View style={styles.cardLeft}>
-          <View style={[styles.colorDot, { backgroundColor: item.color_principal || "#38bdf8" }]} />
+          <View style={[styles.colorDot, { backgroundColor: item.color_principal || "#34d399" }]} />
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{item.nombre}</Text>
             {item.grupo && <Text style={styles.cardGroup}>Grupo {item.grupo}</Text>}
@@ -102,12 +102,12 @@ export default function EquiposScreen() {
               })
             }
           >
-            <Ionicons name="create-outline" size={18} color="#3b82f6" />
+            <Ionicons name="create-outline" size={18} color="#059669" />
             <Text style={styles.actionBtnText}>Editar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionBtn, { borderLeftWidth: 1, borderLeftColor: "#f1f5f9" }]}
+            style={[styles.actionBtn, { borderLeftWidth: 1, borderLeftColor: "#ecfdf5" }]}
             onPress={() => handleDeleteEquipo(item.id, item.nombre)}
           >
             <Ionicons name="trash-outline" size={18} color="#ef4444" />
@@ -120,7 +120,7 @@ export default function EquiposScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0f172a", "#1e293b"]} style={styles.header}>
+      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -134,7 +134,7 @@ export default function EquiposScreen() {
 
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="large" color="#38bdf8" style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color="#34d399" style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={equipos}
@@ -142,7 +142,7 @@ export default function EquiposScreen() {
             renderItem={renderEquipo}
             contentContainerStyle={styles.listContainer}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#38bdf8" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
@@ -168,7 +168,7 @@ export default function EquiposScreen() {
           }
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={26} color="#0f172a" style={{ marginRight: 4 }} />
+          <Ionicons name="add" size={26} color="#022c22" style={{ marginRight: 4 }} />
           <Text style={styles.fabText}>Equipo</Text>
         </TouchableOpacity>
       )}
@@ -177,7 +177,7 @@ export default function EquiposScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f1f5f9" },
+  container: { flex: 1, backgroundColor: "#f0fdf4" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
     paddingHorizontal: 20,
@@ -187,13 +187,13 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: {
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(52,211,153,0.1)",
     padding: 8,
     borderRadius: 10,
     marginRight: 14,
   },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "800" },
-  headerSub: { color: "#94a3b8", fontSize: 13, marginTop: 2 },
+  headerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   listContainer: { paddingBottom: 100 },
   card: {
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#d1fae5",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -218,8 +218,8 @@ const styles = StyleSheet.create({
   adminActions: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
-    backgroundColor: "#f8fafc",
+    borderTopColor: "#ecfdf5",
+    backgroundColor: "#f0fdf4",
   },
   actionBtn: {
     flex: 1,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   actionBtnText: {
-    color: "#3b82f6",
+    color: "#059669",
     fontSize: 13,
     fontWeight: "700",
     marginLeft: 6,
@@ -242,26 +242,26 @@ const styles = StyleSheet.create({
   },
   cardLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   colorDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
-  cardTitle: { fontSize: 16, fontWeight: "700", color: "#0f172a" },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#064e3b" },
   cardGroup: { fontSize: 12, color: "#64748b", marginTop: 2 },
   emptyContainer: { alignItems: "center", marginTop: 60 },
   emptyText: { color: "#94a3b8", fontSize: 16, marginTop: 16, textAlign: "center" },
-  emptyHint: { color: "#38bdf8", fontSize: 13, marginTop: 8 },
+  emptyHint: { color: "#34d399", fontSize: 13, marginTop: 8 },
   fab: {
     position: "absolute",
     bottom: 24,
     right: 24,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#38bdf8",
+    backgroundColor: "#34d399",
     paddingHorizontal: 20,
     height: 56,
     borderRadius: 28,
     elevation: 8,
-    shadowColor: "#38bdf8",
+    shadowColor: "#34d399",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  fabText: { color: "#0f172a", fontSize: 16, fontWeight: "800" },
+  fabText: { color: "#022c22", fontSize: 16, fontWeight: "800" },
 });

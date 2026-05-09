@@ -7,8 +7,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import { getJugadoresByEquipo } from '@/src/api/jugadores';
-import type { Jugador } from '@/src/api/jugadores';
+import { getJugadoresByEquipo } from '../../../../src/api/jugadores';
+import type { Jugador } from '../../../../src/api/jugadores';
 
 export default function JugadoresScreen() {
   const { equipoId } = useLocalSearchParams<{ equipoId: string }>();
@@ -89,7 +89,7 @@ export default function JugadoresScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: '#f0fdf4',
     padding: 16,
   },
   center: {
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: '#f0fdf4',
   },
   helper: {
     marginTop: 10,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#111827',
+    color: '#064e3b',
     marginBottom: 16,
   },
   listContent: {
@@ -123,12 +123,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#d1fae5',
   },
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: '#064e3b',
     marginBottom: 6,
   },
   meta: {

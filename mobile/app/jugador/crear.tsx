@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { createJugador } from "@/src/api/jugadores";
+import { createJugador } from "../../src/api/jugadores";
 
 export default function CrearJugadorScreen() {
   const { equipoId, torneoId } = useLocalSearchParams<{
@@ -62,15 +62,15 @@ export default function CrearJugadorScreen() {
     <ScrollView
       contentContainerStyle={{
         padding: 16,
-        backgroundColor: "#f3f4f6",
+        backgroundColor: "#f0fdf4",
         flexGrow: 1,
       }}
     >
-      <Text style={{ fontSize: 24, fontWeight: "800", marginBottom: 18 }}>
+      <Text style={{ fontSize: 24, fontWeight: "800", marginBottom: 18, color: "#064e3b" }}>
         Crear jugador
       </Text>
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Nombre</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Nombre</Text>
       <TextInput
         value={nombre}
         onChangeText={setNombre}
@@ -78,7 +78,7 @@ export default function CrearJugadorScreen() {
         style={inputStyle}
       />
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Apellido</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Apellido</Text>
       <TextInput
         value={apellido}
         onChangeText={setApellido}
@@ -86,7 +86,7 @@ export default function CrearJugadorScreen() {
         style={inputStyle}
       />
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Posición</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Posición</Text>
       <TextInput
         value={posicion}
         onChangeText={setPosicion}
@@ -94,7 +94,7 @@ export default function CrearJugadorScreen() {
         style={inputStyle}
       />
 
-      <Text style={{ fontWeight: "700", marginBottom: 6 }}>Número de camiseta</Text>
+      <Text style={{ fontWeight: "700", marginBottom: 6, color: "#064e3b" }}>Número de camiseta</Text>
       <TextInput
         value={numeroCamiseta}
         onChangeText={setNumeroCamiseta}
@@ -112,17 +112,19 @@ export default function CrearJugadorScreen() {
           borderRadius: 12,
           padding: 14,
           marginBottom: 18,
+          borderWidth: 1,
+          borderColor: "#d1fae5",
         }}
       >
-        <Text style={{ fontWeight: "700" }}>Activo</Text>
-        <Switch value={activo} onValueChange={setActivo} />
+        <Text style={{ fontWeight: "700", color: "#064e3b" }}>Activo</Text>
+        <Switch value={activo} onValueChange={setActivo} trackColor={{ true: "#34d399" }} />
       </View>
 
       <Pressable
         onPress={handleGuardar}
         disabled={loading}
         style={{
-          backgroundColor: "#15803d",
+          backgroundColor: "#059669",
           paddingVertical: 16,
           borderRadius: 14,
           alignItems: "center",
@@ -139,9 +141,10 @@ export default function CrearJugadorScreen() {
 const inputStyle = {
   backgroundColor: "#fff",
   borderWidth: 1,
-  borderColor: "#d1d5db",
+  borderColor: "#d1fae5",
   borderRadius: 12,
   paddingHorizontal: 14,
   paddingVertical: 14,
   marginBottom: 14,
+  color: "#064e3b",
 };
