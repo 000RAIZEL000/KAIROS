@@ -5,15 +5,18 @@ from app.core.config import settings
 
 DATABASE_URL = settings.DATABASE_URL
 
-connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args=connect_args,
-    echo=settings.DEBUG,
-)
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        echo=settings.DEBUG,
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        echo=settings.DEBUG,
+        pool_pre_ping=True,
+    )
 
 # Habilitar claves foráneas en SQLite
 if DATABASE_URL.startswith("sqlite"):
