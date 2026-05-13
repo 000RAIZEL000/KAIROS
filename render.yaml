@@ -1,0 +1,31 @@
+databases:
+  - name: kairos-db
+    databaseName: kairos
+    user: kairos_user
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: kairos-backend
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend_fastapi/backend
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn config.wsgi:application --workers 2 --timeout 120
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kairos-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "kairos-backend-w96l.onrender.com,.onrender.com"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"
+      - key: PYTHON_VERSION
+        value: "3.11.0"
