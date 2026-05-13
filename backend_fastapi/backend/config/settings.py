@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-_allowed = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+_allowed = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,kairos-backend-w96l.onrender.com')
 ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
 
 INSTALLED_APPS = [
