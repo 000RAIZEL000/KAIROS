@@ -27,22 +27,22 @@ export type JugadorPayload = {
   activo?: boolean;
 };
 
-export async function getJugadoresByEquipo(equipoId: string): Promise<Jugador[]> {
-  return extractData(api.get(`/jugadores/?equipo_id=${equipoId}`));
+export async function getJugadoresByEquipo(equipoId: string | number): Promise<Jugador[]> {
+  return extractData(api.get("/jugadores/", { params: { equipo_id: equipoId } }));
 }
 
-export async function getJugadorById(id: string): Promise<Jugador> {
-  return extractData(api.get(`/jugadores/${id}`));
+export async function getJugadorById(id: string | number): Promise<Jugador> {
+  return extractData(api.get(`/jugadores/${id}/`));
 }
 
 export async function createJugador(payload: JugadorPayload): Promise<Jugador> {
   return extractData(api.post("/jugadores/", payload));
 }
 
-export async function updateJugador(id: string, payload: Partial<JugadorPayload>): Promise<Jugador> {
-  return extractData(api.put(`/jugadores/${id}`, payload));
+export async function updateJugador(id: string | number, payload: Partial<JugadorPayload>): Promise<Jugador> {
+  return extractData(api.patch(`/jugadores/${id}/`, payload));
 }
 
-export async function deleteJugador(id: string): Promise<void> {
-  await api.delete(`/jugadores/${id}`);
+export async function deleteJugador(id: string | number): Promise<void> {
+  await api.delete(`/jugadores/${id}/`);
 }

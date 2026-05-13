@@ -23,18 +23,18 @@ export type EventoPayload = {
   descripcion?: string | null;
 };
 
-export async function getEventosByPartido(partidoId: string): Promise<Evento[]> {
-  return extractData(api.get(`/eventos/?partido_id=${partidoId}`));
+export async function getEventosByPartido(partidoId: string | number): Promise<Evento[]> {
+  return extractData(api.get("/eventos/", { params: { partido_id: partidoId } }));
 }
 
 export async function createEvento(payload: EventoPayload): Promise<Evento> {
   return extractData(api.post("/eventos/", payload));
 }
 
-export async function updateEvento(id: string, payload: EventoPayload): Promise<Evento> {
-  return extractData(api.put(`/eventos/${id}`, payload));
+export async function updateEvento(id: string | number, payload: Partial<EventoPayload>): Promise<Evento> {
+  return extractData(api.patch(`/eventos/${id}/`, payload));
 }
 
-export async function deleteEvento(id: string): Promise<void> {
-  await api.delete(`/eventos/${id}`);
+export async function deleteEvento(id: string | number): Promise<void> {
+  await api.delete(`/eventos/${id}/`);
 }

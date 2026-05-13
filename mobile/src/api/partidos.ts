@@ -36,22 +36,22 @@ export type PartidoPayload = {
   observaciones?: string | null;
 };
 
-export async function getPartidos(torneoId: string): Promise<Partido[]> {
-  return extractData(api.get(`/partidos/?torneo_id=${torneoId}`));
+export async function getPartidos(torneoId: string | number): Promise<Partido[]> {
+  return extractData(api.get("/partidos/", { params: { torneo_id: torneoId } }));
 }
 
-export async function getPartido(id: string): Promise<Partido> {
-  return extractData(api.get(`/partidos/${id}`));
+export async function getPartido(id: string | number): Promise<Partido> {
+  return extractData(api.get(`/partidos/${id}/`));
 }
 
 export async function createPartido(payload: PartidoPayload): Promise<Partido> {
   return extractData(api.post("/partidos/", payload));
 }
 
-export async function updatePartido(id: string, payload: Partial<PartidoPayload>): Promise<Partido> {
-  return extractData(api.put(`/partidos/${id}`, payload));
+export async function updatePartido(id: string | number, payload: Partial<PartidoPayload>): Promise<Partido> {
+  return extractData(api.patch(`/partidos/${id}/`, payload));
 }
 
-export async function deletePartido(id: string): Promise<void> {
-  await api.delete(`/partidos/${id}`);
+export async function deletePartido(id: string | number): Promise<void> {
+  await api.delete(`/partidos/${id}/`);
 }

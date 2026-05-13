@@ -30,7 +30,7 @@ export async function getTorneos(): Promise<Torneo[]> {
 }
 
 export async function getTorneoById(id: string | number): Promise<Torneo> {
-  return extractData(api.get(`/torneos/${id}`));
+  return extractData(api.get(`/torneos/${id}/`));
 }
 
 export async function createTorneo(payload: TorneoPayload): Promise<Torneo> {
@@ -41,9 +41,9 @@ export async function updateTorneo(
   id: string | number,
   payload: Partial<TorneoPayload>
 ): Promise<Torneo> {
-  return extractData(api.put(`/torneos/${id}`, payload));
+  return extractData(api.patch(`/torneos/${id}/`, payload));
 }
 
 export async function deleteTorneo(id: string | number): Promise<void> {
-  await api.delete(`/torneos/${id}`);
+  await api.delete(`/torneos/${id}/`);
 }

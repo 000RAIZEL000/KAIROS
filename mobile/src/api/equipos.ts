@@ -23,22 +23,22 @@ export type EquipoPayload = {
   activo?: boolean;
 };
 
-export async function getEquiposByTorneo(torneoId: string): Promise<Equipo[]> {
-  return extractData(api.get(`/equipos/?torneo_id=${torneoId}`));
+export async function getEquiposByTorneo(torneoId: string | number): Promise<Equipo[]> {
+  return extractData(api.get("/equipos/", { params: { torneo_id: torneoId } }));
 }
 
-export async function getEquipoById(id: string): Promise<Equipo> {
-  return extractData(api.get(`/equipos/${id}`));
+export async function getEquipoById(id: string | number): Promise<Equipo> {
+  return extractData(api.get(`/equipos/${id}/`));
 }
 
 export async function createEquipo(payload: EquipoPayload): Promise<Equipo> {
   return extractData(api.post("/equipos/", payload));
 }
 
-export async function updateEquipo(id: string, payload: Partial<EquipoPayload>): Promise<Equipo> {
-  return extractData(api.put(`/equipos/${id}`, payload));
+export async function updateEquipo(id: string | number, payload: Partial<EquipoPayload>): Promise<Equipo> {
+  return extractData(api.patch(`/equipos/${id}/`, payload));
 }
 
-export async function deleteEquipo(id: string): Promise<void> {
-  await api.delete(`/equipos/${id}`);
+export async function deleteEquipo(id: string | number): Promise<void> {
+  await api.delete(`/equipos/${id}/`);
 }
