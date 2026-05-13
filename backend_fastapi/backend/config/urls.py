@@ -1,6 +1,17 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+from django.db import connection
 from rest_framework.routers import DefaultRouter
+
+
+def health_check(request):
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except Exception:
+        db_ok = False
+    return JsonResponse({'status': 'ok' if db_ok else 'degraded', 'db': db_ok})
 
 from apps.torneos.views import (
     TorneoViewSet,
@@ -25,6 +36,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/auth/', include('apps.users.urls')),
+    path('api/health/', health_check, name='health'),
 
     # Stats
     path('api/stats/tabla/<int:torneo_id>/', tabla_torneo, name='stats-tabla'),
