@@ -16,3 +16,26 @@ try:
     print('[kairos] Migrations OK', flush=True)
 except Exception as exc:
     print(f'[kairos] migrate error: {exc}', file=sys.stderr, flush=True)
+
+try:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    _email = 'admin@kairos.com'
+    if not User.objects.filter(email=_email).exists():
+        _u = User(
+            email=_email,
+            username=_email,
+            nombre='Admin Kairos',
+            role='admin',
+            activo=True,
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        _u.set_password('Admin2026')
+        _u.save()
+        print(f'[kairos] {_email} creado con role=admin', flush=True)
+    else:
+        print(f'[kairos] {_email} ya existe', flush=True)
+except Exception as exc:
+    print(f'[kairos] create admin error: {exc}', file=sys.stderr, flush=True)
