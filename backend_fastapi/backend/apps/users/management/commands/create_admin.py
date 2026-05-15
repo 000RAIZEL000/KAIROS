@@ -16,10 +16,18 @@ class Command(BaseCommand):
         if deleted:
             self.stdout.write(f"[kairos] Usuario '{email}' eliminado.")
 
-        User.objects.create_superuser(
+        user = User(
             email=email,
-            password=password,
+            username=email,
             nombre=nombre,
             role="admin",
+            activo=True,
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
         )
-        self.stdout.write(self.style.SUCCESS(f"[kairos] Superusuario '{email}' creado con role=admin."))
+        user.set_password(password)
+        user.save()
+        self.stdout.write(self.style.SUCCESS(
+            f"[kairos] Superusuario '{email}' creado con role=admin, is_active=True."
+        ))
