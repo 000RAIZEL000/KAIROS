@@ -18,6 +18,13 @@ except Exception as exc:
     print(f'[kairos] migrate error: {exc}', file=sys.stderr, flush=True)
 
 try:
+    from django.core.management import call_command as _cc
+    _cc('seed_data')
+    print('[kairos] Seed OK', flush=True)
+except Exception as exc:
+    print(f'[kairos] seed error: {exc}', file=sys.stderr, flush=True)
+
+try:
     from django.contrib.auth import get_user_model
     User = get_user_model()
     _email = 'admin@kairos.com'
