@@ -38,7 +38,7 @@ const lightColors = {
   danger: "#ef4444",
   fabBg: "#34d399",
   fabText: "#022c22",
-  statusBarStyle: "dark-content" as const,
+  statusBarStyle: "dark-content" as "light-content" | "dark-content",
   // Badge
   badgeBg: "rgba(52, 211, 153, 0.2)",
   badgeText: "#34d399",
@@ -83,7 +83,7 @@ const darkColors = {
   danger: "#ef4444",
   fabBg: "#34d399",
   fabText: "#022c22",
-  statusBarStyle: "light-content" as const,
+  statusBarStyle: "light-content" as "light-content" | "dark-content",
   // Badge
   badgeBg: "rgba(52, 211, 153, 0.2)",
   badgeText: "#34d399",
