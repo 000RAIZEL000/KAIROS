@@ -14,9 +14,11 @@ import {
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAppTheme } from "../../src/context/ThemeContext";
 import { createTorneo } from "../../src/api/torneos";
 
 export default function CrearTorneoScreen() {
+  const { colors } = useAppTheme();
   const [nombre, setNombre] = useState("");
   const [deporte, setDeporte] = useState("");
   const [modalidad, setModalidad] = useState("");
@@ -30,18 +32,19 @@ export default function CrearTorneoScreen() {
 
     try {
       setLoading(true);
-      const nuevoTorneo = await createTorneo({
+      await createTorneo({
         nombre: nombre.trim(),
         deporte: deporte.trim(),
         modalidad: modalidad.trim(),
       });
-      
+
       Alert.alert("¡Éxito!", "Tu campeonato ha sido creado correctamente.", [
         { text: "Continuar", onPress: () => router.back() }
-      ]);    } catch (error: any) {
+      ]);
+    } catch (error: any) {
       console.log("Error creando torneo:", error?.response?.data || error);
       Alert.alert(
-        "Error al Crear", 
+        "Error al Crear",
         error?.response?.data?.detail || "No se pudo crear el campeonato correctamente."
       );
     } finally {
@@ -50,14 +53,14 @@ export default function CrearTorneoScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#f8fafc" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Nuevo Campeonato</Text>
-          <View style={{ width: 44 }} /> 
+          <View style={{ width: 44 }} />
         </View>
       </LinearGradient>
 
@@ -66,16 +69,16 @@ export default function CrearTorneoScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-          
-          <View style={styles.formCard}>
+
+          <View style={[styles.formCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nombre del Torneo</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="trophy-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <Text style={[styles.label, { color: colors.text }]}>Nombre del Torneo</Text>
+              <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+                <Ionicons name="trophy-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Ej. Liga de Verano 2026"
-                  placeholderTextColor="#cbd5e1"
+                  placeholderTextColor={colors.textMuted}
                   value={nombre}
                   onChangeText={setNombre}
                 />
@@ -83,13 +86,13 @@ export default function CrearTorneoScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Deporte</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="football-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <Text style={[styles.label, { color: colors.text }]}>Deporte</Text>
+              <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+                <Ionicons name="football-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Ej. Fútbol"
-                  placeholderTextColor="#cbd5e1"
+                  placeholderTextColor={colors.textMuted}
                   value={deporte}
                   onChangeText={setDeporte}
                 />
@@ -97,29 +100,29 @@ export default function CrearTorneoScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Modalidad</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="people-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <Text style={[styles.label, { color: colors.text }]}>Modalidad</Text>
+              <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+                <Ionicons name="people-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Ej. Fútbol 7, Fútbol 11"
-                  placeholderTextColor="#cbd5e1"
+                  placeholderTextColor={colors.textMuted}
                   value={modalidad}
                   onChangeText={setModalidad}
                 />
               </View>
             </View>
 
-            <TouchableOpacity 
-              style={[styles.button, loading && styles.buttonDisabled]} 
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: colors.fabBg }, loading && styles.buttonDisabled]}
               onPress={handleCreate}
               disabled={loading}
               activeOpacity={0.8}
             >
               {loading ? (
-                <ActivityIndicator color="#022c22" />
+                <ActivityIndicator color={colors.fabText} />
               ) : (
-                <Text style={styles.buttonText}>Crear Campeonato</Text>
+                <Text style={[styles.buttonText, { color: colors.fabText }]}>Crear Campeonato</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -130,13 +133,8 @@ export default function CrearTorneoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f0fdf4",
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  keyboardView: { flex: 1 },
   header: {
     paddingTop: Platform.OS === 'ios' ? 50 : 40,
     paddingHorizontal: 20,
@@ -170,7 +168,6 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   formCard: {
-    backgroundColor: "#ffffff",
     borderRadius: 20,
     padding: 24,
     shadowColor: "#000",
@@ -185,31 +182,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#064e3b",
     marginBottom: 8,
     marginLeft: 4,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0fdf4",
     borderRadius: 14,
     paddingHorizontal: 16,
     height: 56,
     borderWidth: 1,
-    borderColor: "#d1fae5",
   },
-  inputIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    height: "100%",
-    color: "#064e3b",
-    fontSize: 16,
-  },
+  inputIcon: { marginRight: 12 },
+  input: { flex: 1, height: "100%", fontSize: 16 },
   button: {
-    backgroundColor: "#34d399",
     height: 56,
     borderRadius: 14,
     justifyContent: "center",
@@ -221,14 +207,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  buttonDisabled: {
-    backgroundColor: "#a7f3d0",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonText: {
-    color: "#022c22",
-    fontSize: 17,
-    fontWeight: "800",
-  },
+  buttonDisabled: { opacity: 0.5 },
+  buttonText: { fontSize: 17, fontWeight: "800" },
 });

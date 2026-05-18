@@ -7,11 +7,13 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useAppTheme } from '../../../../src/context/ThemeContext';
 import { getJugadoresByEquipo } from '../../../../src/api/jugadores';
 import type { Jugador } from '../../../../src/api/jugadores';
 
 export default function JugadoresScreen() {
   const { equipoId } = useLocalSearchParams<{ equipoId: string }>();
+  const { colors } = useAppTheme();
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,12 +27,9 @@ export default function JugadoresScreen() {
       setError(null);
 
       const data = await getJugadoresByEquipo(equipoId);
-      console.log('JUGADORES:', data);
       setJugadores(data);
     } catch (err: any) {
       console.log('ERROR jugadores:', err?.message);
-      console.log('STATUS jugadores:', err?.response?.status);
-      console.log('DATA jugadores:', err?.response?.data);
       setError('No se pudieron cargar los jugadores.');
     } finally {
       setLoading(false);
@@ -43,42 +42,42 @@ export default function JugadoresScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.helper}>Cargando jugadores...</Text>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text style={[styles.helper, { color: colors.textMuted }]}>Cargando jugadores...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error}</Text>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Jugadores</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Jugadores</Text>
 
       <FlatList
         data={jugadores}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name}>
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <Text style={[styles.name, { color: colors.text }]}>
               {item.numero_camiseta ? `#${item.numero_camiseta} ` : ''}
               {item.nombre}
             </Text>
 
             {item.posicion ? (
-              <Text style={styles.meta}>{item.posicion}</Text>
+              <Text style={[styles.meta, { color: colors.textMuted }]}>{item.posicion}</Text>
             ) : null}
           </View>
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>No hay jugadores registrados.</Text>
+          <Text style={[styles.empty, { color: colors.textMuted }]}>No hay jugadores registrados.</Text>
         }
         contentContainerStyle={styles.listContent}
       />
@@ -89,7 +88,6 @@ export default function JugadoresScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0fdf4',
     padding: 16,
   },
   center: {
@@ -97,47 +95,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#f0fdf4',
   },
   helper: {
     marginTop: 10,
-    color: '#6B7280',
   },
   error: {
-    color: '#B91C1C',
     fontSize: 16,
     textAlign: 'center',
   },
   title: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#064e3b',
     marginBottom: 16,
   },
   listContent: {
     paddingBottom: 24,
   },
   card: {
-    backgroundColor: '#FFFFFF',
     padding: 14,
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#d1fae5',
   },
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#064e3b',
     marginBottom: 6,
   },
   meta: {
-    color: '#6B7280',
     fontSize: 14,
   },
   empty: {
     textAlign: 'center',
     marginTop: 40,
-    color: '#6B7280',
   },
 });

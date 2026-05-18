@@ -14,10 +14,12 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "../../../src/context/ThemeContext";
 import { getTorneoById, updateTorneo } from "../../../src/api/torneos";
 
 export default function EditarTorneoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { colors } = useAppTheme();
   const [nombre, setNombre] = useState("");
   const [deporte, setDeporte] = useState("");
   const [modalidad, setModalidad] = useState("");
@@ -73,15 +75,15 @@ export default function EditarTorneoScreen() {
 
   if (fetching) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#34d399" />
+      <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -95,72 +97,72 @@ export default function EditarTorneoScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-          <Text style={styles.label}>Nombre del Torneo *</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Nombre del Torneo *</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               value={nombre}
               onChangeText={setNombre}
               placeholder="Nombre del torneo"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
-          <Text style={styles.label}>Deporte</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Deporte</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               value={deporte}
               onChangeText={setDeporte}
               placeholder="Ej: Fútbol"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
-          <Text style={styles.label}>Modalidad</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Modalidad</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               value={modalidad}
               onChangeText={setModalidad}
               placeholder="Ej: Fútbol 7"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
-          <Text style={styles.label}>Dirección</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Dirección</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               value={direccion}
               onChangeText={setDireccion}
               placeholder="Ubicación"
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
-          <Text style={styles.label}>Descripción</Text>
-          <View style={[styles.inputContainer, styles.textAreaContainer]}>
+          <Text style={[styles.label, { color: colors.text }]}>Descripción</Text>
+          <View style={[styles.inputContainer, styles.textAreaContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { color: colors.text }]}
               value={descripcion}
               onChangeText={setDescripcion}
               placeholder="Detalles adicionales..."
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={colors.textMuted}
               multiline
               numberOfLines={4}
             />
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && { opacity: 0.7 }]}
+            style={[styles.button, { backgroundColor: colors.fabBg }, loading && { opacity: 0.7 }]}
             onPress={handleUpdate}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#022c22" />
+              <ActivityIndicator color={colors.fabText} />
             ) : (
-              <Text style={styles.buttonText}>Guardar Cambios</Text>
+              <Text style={[styles.buttonText, { color: colors.fabText }]}>Guardar Cambios</Text>
             )}
           </TouchableOpacity>
         </ScrollView>
@@ -170,7 +172,7 @@ export default function EditarTorneoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0fdf4" },
+  container: { flex: 1 },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -189,17 +191,14 @@ const styles = StyleSheet.create({
   headerTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "800" },
   form: { padding: 20, paddingBottom: 40 },
   label: {
-    color: "#064e3b",
     fontSize: 14,
     fontWeight: "700",
     marginBottom: 6,
     marginTop: 14,
   },
   inputContainer: {
-    backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#d1fae5",
     paddingHorizontal: 14,
     height: 52,
     justifyContent: "center",
@@ -208,13 +207,12 @@ const styles = StyleSheet.create({
     height: 100,
     paddingVertical: 10,
   },
-  input: { color: "#064e3b", fontSize: 16 },
+  input: { fontSize: 16 },
   textArea: {
     height: "100%",
     textAlignVertical: "top",
   },
   button: {
-    backgroundColor: "#34d399",
     borderRadius: 14,
     height: 56,
     justifyContent: "center",
@@ -222,5 +220,5 @@ const styles = StyleSheet.create({
     marginTop: 30,
     elevation: 4,
   },
-  buttonText: { color: "#022c22", fontSize: 17, fontWeight: "800" },
+  buttonText: { fontSize: 17, fontWeight: "800" },
 });

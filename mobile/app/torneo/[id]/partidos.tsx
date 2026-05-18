@@ -13,12 +13,14 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../../src/context/AuthContext";
+import { useAppTheme } from "../../../src/context/ThemeContext";
 import { getPartidos } from "../../../src/api/partidos";
 import type { Partido } from "../../../src/api/partidos";
 
 export default function PartidosScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [partidos, setPartidos] = useState<Partido[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +49,7 @@ export default function PartidosScreen() {
 
   const renderPartido = ({ item }: { item: Partido }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
       activeOpacity={0.8}
       onPress={() =>
         user?.role === "admin" &&
@@ -57,46 +59,46 @@ export default function PartidosScreen() {
         })
       }
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.fechaText}>
+      <View style={[styles.cardHeader, { borderBottomColor: colors.cardFooterBorder }]}>
+        <Text style={[styles.fechaText, { color: colors.textSecondary }]}>
           {item.fecha ? new Date(item.fecha).toLocaleDateString() : "Fecha pendiente"}
         </Text>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado) }]}>
-          <Text style={styles.statusText}>{item.estado}</Text>
+          <Text style={[styles.statusText, { color: colors.textOnHeader }]}>{item.estado}</Text>
         </View>
       </View>
 
       <View style={styles.matchContent}>
         <View style={styles.teamSection}>
-          <Text style={styles.teamName} numberOfLines={2}>{item.equipo_local?.nombre || "Local"}</Text>
+          <Text style={[styles.teamName, { color: colors.text }]} numberOfLines={2}>{item.equipo_local?.nombre || "Local"}</Text>
         </View>
 
-        <View style={styles.scoreSection}>
-          <Text style={styles.scoreText}>
-            {item.estado === "Finalizado" || item.estado === "En juego" 
-              ? `${item.goles_local} - ${item.goles_visitante}` 
+        <View style={[styles.scoreSection, { backgroundColor: colors.accentSoft }]}>
+          <Text style={[styles.scoreText, { color: colors.accent }]}>
+            {item.estado === "Finalizado" || item.estado === "En juego"
+              ? `${item.goles_local} - ${item.goles_visitante}`
               : "VS"}
           </Text>
         </View>
 
         <View style={styles.teamSection}>
-          <Text style={[styles.teamName, { textAlign: "right" }]} numberOfLines={2}>
+          <Text style={[styles.teamName, { color: colors.text, textAlign: "right" }]} numberOfLines={2}>
             {item.equipo_visitante?.nombre || "Visitante"}
           </Text>
         </View>
       </View>
 
       {item.cancha && (
-        <View style={styles.canchaRow}>
-          <Ionicons name="location-outline" size={14} color="#a7f3d0" />
-          <Text style={styles.canchaText}>{item.cancha}</Text>
+        <View style={[styles.canchaRow, { borderTopColor: colors.cardFooterBorder }]}>
+          <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.canchaText, { color: colors.textSecondary }]}>{item.cancha}</Text>
         </View>
       )}
 
       {user?.role === "admin" && (
         <View style={styles.adminHint}>
-          <Ionicons name="settings-outline" size={14} color="#34d399" />
-          <Text style={styles.adminHintText}>Toca para gestionar resultados y eventos</Text>
+          <Ionicons name="settings-outline" size={14} color={colors.accent} />
+          <Text style={[styles.adminHintText, { color: colors.accent }]}>Toca para gestionar resultados y eventos</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -112,8 +114,8 @@ export default function PartidosScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -122,12 +124,19 @@ export default function PartidosScreen() {
             <Text style={styles.headerTitle}>Calendario</Text>
             <Text style={styles.headerSub}>{partidos.length} partido(s) programado(s)</Text>
           </View>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons
+              name={theme === "dark" ? "sunny-outline" : "moon-outline"}
+              size={20}
+              color="#f8fafc"
+            />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="large" color="#34d399" style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={partidos}
@@ -135,14 +144,14 @@ export default function PartidosScreen() {
             renderItem={renderPartido}
             contentContainerStyle={styles.listContainer}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Ionicons name="calendar-outline" size={60} color="#065f46" />
-                <Text style={styles.emptyText}>No hay partidos programados en este torneo.</Text>
+                <Ionicons name="calendar-outline" size={60} color={colors.textMuted} />
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay partidos programados en este torneo.</Text>
                 {user?.role === "admin" && (
-                  <Text style={styles.emptyHint}>Toca el botón "+" para programar uno.</Text>
+                  <Text style={[styles.emptyHint, { color: colors.accent }]}>Toca el botón "+" para programar uno.</Text>
                 )}
               </View>
             }
@@ -152,7 +161,7 @@ export default function PartidosScreen() {
 
       {user?.role === "admin" && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: colors.fabBg }]}
           onPress={() =>
             router.push({
               pathname: "/torneo/[id]/crear-partido",
@@ -161,8 +170,8 @@ export default function PartidosScreen() {
           }
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={26} color="#022c22" style={{ marginRight: 4 }} />
-          <Text style={styles.fabText}>Partido</Text>
+          <Ionicons name="add" size={26} color={colors.fabText} style={{ marginRight: 4 }} />
+          <Text style={[styles.fabText, { color: colors.fabText }]}>Partido</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -170,7 +179,7 @@ export default function PartidosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#022c22" },
+  container: { flex: 1 },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
     paddingHorizontal: 20,
@@ -185,21 +194,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 14,
   },
+  themeBtn: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    padding: 10,
+    borderRadius: 12,
+  },
   headerTitle: { color: "#f8fafc", fontSize: 24, fontWeight: "900" },
   headerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
   content: { flex: 1, paddingHorizontal: 16 },
   listContainer: { paddingVertical: 20, paddingBottom: 100 },
   card: {
-    backgroundColor: "#064e3b",
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "rgba(52, 211, 153, 0.15)",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
   },
   cardHeader: {
@@ -208,16 +220,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(52, 211, 153, 0.08)",
     paddingBottom: 8,
   },
-  fechaText: { color: "#a7f3d0", fontSize: 12, fontWeight: "700" },
+  fechaText: { fontSize: 12, fontWeight: "700" },
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
-  statusText: { color: "#f8fafc", fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
+  statusText: { fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
   matchContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -225,42 +236,39 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   teamSection: { flex: 2 },
-  teamName: { color: "#f8fafc", fontSize: 16, fontWeight: "800" },
+  teamName: { fontSize: 16, fontWeight: "800" },
   scoreSection: {
     flex: 1,
-    backgroundColor: "rgba(52, 211, 153, 0.1)",
     paddingVertical: 8,
     borderRadius: 12,
     alignItems: "center",
     marginHorizontal: 10,
   },
-  scoreText: { color: "#34d399", fontSize: 20, fontWeight: "900" },
+  scoreText: { fontSize: 20, fontWeight: "900" },
   canchaRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "rgba(52, 211, 153, 0.08)",
   },
-  canchaText: { color: "#6ee7b7", fontSize: 12, marginLeft: 6 },
+  canchaText: { fontSize: 12, marginLeft: 6 },
   adminHint: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 10,
     justifyContent: "center",
   },
-  adminHintText: { color: "#34d399", fontSize: 11, fontWeight: "600", marginLeft: 4 },
+  adminHintText: { fontSize: 11, fontWeight: "600", marginLeft: 4 },
   emptyContainer: { alignItems: "center", marginTop: 60 },
-  emptyText: { color: "#6ee7b7", fontSize: 16, marginTop: 16, textAlign: "center" },
-  emptyHint: { color: "#34d399", fontSize: 13, marginTop: 8 },
+  emptyText: { fontSize: 16, marginTop: 16, textAlign: "center" },
+  emptyHint: { fontSize: 13, marginTop: 8 },
   fab: {
     position: "absolute",
     bottom: 24,
     right: 24,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#34d399",
     paddingHorizontal: 20,
     height: 56,
     borderRadius: 28,
@@ -270,5 +278,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  fabText: { color: "#022c22", fontSize: 16, fontWeight: "800" },
+  fabText: { fontSize: 16, fontWeight: "800" },
 });

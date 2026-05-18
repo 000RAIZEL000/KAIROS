@@ -14,12 +14,14 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "../../../src/context/ThemeContext";
 import { getEquiposByTorneo } from "../../../src/api/equipos";
 import type { Equipo } from "../../../src/api/equipos";
 import { createPartido } from "../../../src/api/partidos";
 
 export default function CrearPartidoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { colors } = useAppTheme();
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [localId, setLocalId] = useState<number | null>(null);
   const [visitanteId, setVisitanteId] = useState<number | null>(null);
@@ -76,15 +78,15 @@ export default function CrearPartidoScreen() {
 
   if (fetching) {
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#34d399" />
+      <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -95,67 +97,83 @@ export default function CrearPartidoScreen() {
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-          
-          <Text style={styles.label}>Equipo Local</Text>
+
+          <Text style={[styles.label, { color: colors.text }]}>Equipo Local</Text>
           <View style={styles.pickerContainer}>
             {equipos.map((e) => (
               <TouchableOpacity
                 key={`local-${e.id}`}
-                style={[styles.pickerItem, localId === e.id && styles.pickerItemActive]}
+                style={[
+                  styles.pickerItem,
+                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                  localId === e.id && { backgroundColor: colors.accent, borderColor: colors.accent },
+                ]}
                 onPress={() => setLocalId(e.id)}
               >
-                <Text style={[styles.pickerText, localId === e.id && styles.pickerTextActive]}>{e.nombre}</Text>
+                <Text style={[
+                  styles.pickerText,
+                  { color: colors.textSecondary },
+                  localId === e.id && { color: colors.fabText },
+                ]}>{e.nombre}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.label}>Equipo Visitante</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Equipo Visitante</Text>
           <View style={styles.pickerContainer}>
             {equipos.map((e) => (
               <TouchableOpacity
                 key={`visit-${e.id}`}
-                style={[styles.pickerItem, visitanteId === e.id && styles.pickerItemActive]}
+                style={[
+                  styles.pickerItem,
+                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                  visitanteId === e.id && { backgroundColor: colors.accent, borderColor: colors.accent },
+                ]}
                 onPress={() => setVisitanteId(e.id)}
               >
-                <Text style={[styles.pickerText, visitanteId === e.id && styles.pickerTextActive]}>{e.nombre}</Text>
+                <Text style={[
+                  styles.pickerText,
+                  { color: colors.textSecondary },
+                  visitanteId === e.id && { color: colors.fabText },
+                ]}>{e.nombre}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.label}>Fecha (Opcional - YYYY-MM-DD)</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Fecha (Opcional - YYYY-MM-DD)</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="2023-12-31"
-              placeholderTextColor="#6ee7b7"
+              placeholderTextColor={colors.textMuted}
               value={fecha}
               onChangeText={setFecha}
             />
           </View>
 
-          <Text style={styles.label}>Campo / Cancha (Opcional)</Text>
-          <View style={styles.inputContainer}>
+          <Text style={[styles.label, { color: colors.text }]}>Campo / Cancha (Opcional)</Text>
+          <View style={[styles.inputContainer, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="Cancha Central"
-              placeholderTextColor="#6ee7b7"
+              placeholderTextColor={colors.textMuted}
               value={cancha}
               onChangeText={setCancha}
             />
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && { opacity: 0.7 }]}
+            style={[styles.button, { backgroundColor: colors.fabBg }, loading && { opacity: 0.7 }]}
             onPress={handleCrear}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#022c22" />
+              <ActivityIndicator color={colors.fabText} />
             ) : (
-              <Text style={styles.buttonText}>Programar Encuentro</Text>
+              <Text style={[styles.buttonText, { color: colors.fabText }]}>Programar Encuentro</Text>
             )}
           </TouchableOpacity>
-          
+
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -164,7 +182,7 @@ export default function CrearPartidoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#022c22" },
+  container: { flex: 1 },
   center: { justifyContent: "center", alignItems: "center" },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
@@ -182,31 +200,24 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
   form: { padding: 20 },
-  label: { color: "#d1fae5", fontSize: 13, fontWeight: "700", marginBottom: 10, marginTop: 16, textTransform: "uppercase" },
+  label: { fontSize: 13, fontWeight: "700", marginBottom: 10, marginTop: 16, textTransform: "uppercase" },
   pickerContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pickerItem: {
-    backgroundColor: "#064e3b",
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(52,211,153,0.15)",
   },
-  pickerItemActive: { backgroundColor: "#34d399", borderColor: "#34d399" },
-  pickerText: { color: "#a7f3d0", fontWeight: "600", fontSize: 14 },
-  pickerTextActive: { color: "#022c22" },
+  pickerText: { fontWeight: "600", fontSize: 14 },
   inputContainer: {
-    backgroundColor: "#064e3b",
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(52,211,153,0.15)",
     paddingHorizontal: 16,
     height: 52,
     justifyContent: "center",
   },
-  input: { color: "#f8fafc", fontSize: 16 },
+  input: { fontSize: 16 },
   button: {
-    backgroundColor: "#34d399",
     borderRadius: 16,
     height: 58,
     justifyContent: "center",
@@ -218,5 +229,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  buttonText: { color: "#022c22", fontSize: 17, fontWeight: "900" },
+  buttonText: { fontSize: 17, fontWeight: "900" },
 });

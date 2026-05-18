@@ -14,6 +14,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../../src/context/AuthContext";
+import { useAppTheme } from "../../../src/context/ThemeContext";
 import {
   getJugadoresByEquipo,
   deleteJugador,
@@ -21,11 +22,9 @@ import {
 import type { Jugador } from "../../../src/api/jugadores";
 
 export default function JugadoresScreen() {
-  const { id, equipoId } = useLocalSearchParams<{
-    id: string;
-    equipoId: string;
-  }>();
+  const { id, equipoId } = useLocalSearchParams<{ id: string; equipoId: string }>();
   const { user } = useAuth();
+  const { colors } = useAppTheme();
   const isAdmin = user?.role === "admin";
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
@@ -79,18 +78,18 @@ export default function JugadoresScreen() {
   };
 
   const renderJugador = ({ item }: { item: Jugador }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
       <View style={styles.cardTop}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>
+        <View style={[styles.avatarCircle, { backgroundColor: colors.accentBg }]}>
+          <Text style={[styles.avatarText, { color: colors.accent }]}>
             {item.nombre[0]}{item.apellido[0]}
           </Text>
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.playerName}>
+          <Text style={[styles.playerName, { color: colors.text }]}>
             {item.nombre} {item.apellido}
           </Text>
-          <Text style={styles.playerInfo}>
+          <Text style={[styles.playerInfo, { color: colors.textMuted }]}>
             {item.posicion || "Sin posición"} • #{item.numero_camiseta ?? "—"}
           </Text>
         </View>
@@ -98,9 +97,9 @@ export default function JugadoresScreen() {
       </View>
 
       {isAdmin && (
-        <View style={styles.cardActions}>
+        <View style={[styles.cardActions, { borderTopColor: colors.cardFooterBorder }]}>
           <TouchableOpacity
-            style={styles.editBtn}
+            style={[styles.editBtn, { backgroundColor: colors.accentBg }]}
             onPress={() =>
               router.push({
                 pathname: "/jugador/[jugadorId]/editar",
@@ -112,16 +111,16 @@ export default function JugadoresScreen() {
               })
             }
           >
-            <Ionicons name="create-outline" size={16} color="#059669" />
-            <Text style={styles.editBtnText}>Editar</Text>
+            <Ionicons name="create-outline" size={16} color={colors.accentDark} />
+            <Text style={[styles.editBtnText, { color: colors.accentDark }]}>Editar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.deleteBtn}
+            style={[styles.deleteBtn, { backgroundColor: "rgba(239,68,68,0.1)" }]}
             onPress={() => handleDelete(item.id, item.nombre, item.apellido)}
           >
-            <Ionicons name="trash-outline" size={16} color="#ef4444" />
-            <Text style={styles.deleteBtnText}>Eliminar</Text>
+            <Ionicons name="trash-outline" size={16} color={colors.danger} />
+            <Text style={[styles.deleteBtnText, { color: colors.danger }]}>Eliminar</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -129,8 +128,8 @@ export default function JugadoresScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <LinearGradient colors={["#022c22", "#064e3b"]} style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
@@ -144,7 +143,7 @@ export default function JugadoresScreen() {
 
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator size="large" color="#34d399" style={{ marginTop: 40 }} />
+          <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={jugadores}
@@ -152,14 +151,14 @@ export default function JugadoresScreen() {
             renderItem={renderJugador}
             contentContainerStyle={styles.listContainer}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Ionicons name="person-outline" size={60} color="#cbd5e1" />
-                <Text style={styles.emptyText}>No hay jugadores en este equipo.</Text>
+                <Ionicons name="person-outline" size={60} color={colors.textMuted} />
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay jugadores en este equipo.</Text>
                 {isAdmin && (
-                  <Text style={styles.emptyHint}>Toca "+" para añadir un jugador.</Text>
+                  <Text style={[styles.emptyHint, { color: colors.accent }]}>Toca "+" para añadir un jugador.</Text>
                 )}
               </View>
             }
@@ -169,7 +168,7 @@ export default function JugadoresScreen() {
 
       {isAdmin && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: colors.fabBg }]}
           onPress={() =>
             router.push({
               pathname: "/jugador/crear",
@@ -178,8 +177,8 @@ export default function JugadoresScreen() {
           }
           activeOpacity={0.8}
         >
-          <Ionicons name="person-add" size={22} color="#022c22" style={{ marginRight: 6 }} />
-          <Text style={styles.fabText}>Jugador</Text>
+          <Ionicons name="person-add" size={22} color={colors.fabText} style={{ marginRight: 6 }} />
+          <Text style={[styles.fabText, { color: colors.fabText }]}>Jugador</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -187,7 +186,7 @@ export default function JugadoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0fdf4" },
+  container: { flex: 1 },
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 36,
     paddingHorizontal: 20,
@@ -207,12 +206,10 @@ const styles = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   listContainer: { paddingBottom: 100 },
   card: {
-    backgroundColor: "#ffffff",
     borderRadius: 14,
     padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: "#d1fae5",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -224,20 +221,18 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#064e3b",
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { color: "#34d399", fontWeight: "800", fontSize: 16 },
-  playerName: { fontSize: 16, fontWeight: "700", color: "#064e3b" },
-  playerInfo: { fontSize: 13, color: "#64748b", marginTop: 2 },
+  avatarText: { fontWeight: "800", fontSize: 16 },
+  playerName: { fontSize: 16, fontWeight: "700" },
+  playerInfo: { fontSize: 13, marginTop: 2 },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
   cardActions: {
     flexDirection: "row",
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#ecfdf5",
     gap: 10,
   },
   editBtn: {
@@ -247,9 +242,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#ecfdf5",
   },
-  editBtnText: { color: "#059669", fontWeight: "700", marginLeft: 4 },
+  editBtnText: { fontWeight: "700", marginLeft: 4 },
   deleteBtn: {
     flex: 1,
     flexDirection: "row",
@@ -257,19 +251,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#fef2f2",
   },
-  deleteBtnText: { color: "#ef4444", fontWeight: "700", marginLeft: 4 },
+  deleteBtnText: { fontWeight: "700", marginLeft: 4 },
   emptyContainer: { alignItems: "center", marginTop: 60 },
-  emptyText: { color: "#94a3b8", fontSize: 16, marginTop: 16, textAlign: "center" },
-  emptyHint: { color: "#34d399", fontSize: 13, marginTop: 8 },
+  emptyText: { fontSize: 16, marginTop: 16, textAlign: "center" },
+  emptyHint: { fontSize: 13, marginTop: 8 },
   fab: {
     position: "absolute",
     bottom: 24,
     right: 24,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#34d399",
     paddingHorizontal: 20,
     height: 56,
     borderRadius: 28,
@@ -279,5 +271,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  fabText: { color: "#022c22", fontSize: 16, fontWeight: "800" },
+  fabText: { fontSize: 16, fontWeight: "800" },
 });
