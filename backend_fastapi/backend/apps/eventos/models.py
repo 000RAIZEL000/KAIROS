@@ -1,7 +1,7 @@
 from django.db import models
 
 
-TIPOS_EVENTO = ['gol', 'amarilla', 'roja', 'asistencia']
+TIPOS_EVENTO = ['gol', 'amarilla', 'roja', 'asistencia', 'sustitucion']
 
 
 class EventoPartido(models.Model):
@@ -37,3 +37,46 @@ class EventoPartido(models.Model):
 
     def __str__(self):
         return f'{self.tipo_evento} - Partido {self.partido_id}'
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        old_tipo_evento = None
+        if not is_new:
+            try:
+                old_self = EventoPartido.objects.get(pk=self.pk)
+                old_tipo_evento = old_self.tipo_evento
+            except EventoPartido.DoesNotExist:
+                pass
+
+        super().save(*args, **kwargs)
+
+        if self.tipo_evento == 'gol' or old_tipo_evento == 'gol':
+            self.update_partido_goles()
+
+    def delete(self, *args, **kwargs):
+        partido = self.partido
+        tipo = self.tipo_evento
+        super().delete(*args, **kwargs)
+        if tipo == 'gol' and partido:
+            self.update_partido_goles_for_partido(partido)
+
+    def update_partido_goles(self):
+        if self.partido:
+            self.update_partido_goles_for_partido(self.partido)
+
+    @staticmethod
+    def update_partido_goles_for_partido(partido):
+        goles_local = EventoPartido.objects.filter(
+            partido=partido,
+            tipo_evento='gol',
+            equipo=partido.equipo_local
+        ).count()
+        goles_visitante = EventoPartido.objects.filter(
+            partido=partido,
+            tipo_evento='gol',
+            equipo=partido.equipo_visitante
+        ).count()
+        partido.goles_local = goles_local
+        partido.goles_visitante = goles_visitante
+        partido.save(update_fields=['goles_local', 'goles_visitante'])
+

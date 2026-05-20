@@ -8,6 +8,9 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,6 +23,22 @@ import type { Partido } from "../../../../src/api/partidos";
 import type { Jugador } from "../../../../src/api/jugadores";
 import type { Evento } from "../../../../src/api/eventos";
 
+type TipoEvento = "gol" | "amarilla" | "roja" | "sustitucion";
+
+type TarjetaModalState = {
+  tipo: "amarilla" | "roja";
+  equipoId: number;
+  jugadores: Jugador[];
+};
+
+const TIPO_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+  gol:        { label: "Gol",          icon: "football",        color: "#34d399", bg: "rgba(52,211,153,0.12)"  },
+  amarilla:   { label: "T. Amarilla",  icon: "square",          color: "#fbbf24", bg: "rgba(251,191,36,0.12)"  },
+  roja:       { label: "T. Roja",      icon: "square",          color: "#ef4444", bg: "rgba(239,68,68,0.12)"   },
+  sustitucion:{ label: "Sustitución",  icon: "swap-horizontal", color: "#60a5fa", bg: "rgba(96,165,250,0.12)"  },
+  asistencia: { label: "Asistencia",   icon: "hand-left",       color: "#a78bfa", bg: "rgba(167,139,250,0.12)" },
+};
+
 export default function GestionarPartidoScreen() {
   const { id: torneoId, partidoId } = useLocalSearchParams<{ id: string; partidoId: string }>();
   const { colors } = useAppTheme();
@@ -31,13 +50,30 @@ export default function GestionarPartidoScreen() {
   const [golesL, setGolesL] = useState(0);
   const [golesV, setGolesV] = useState(0);
   const [estado, setEstado] = useState("");
-  const [amarillasL, setAmarillasL] = useState(0);
-  const [amarillasV, setAmarillasV] = useState(0);
-  const [rojasL, setRojasL] = useState(0);
-  const [rojasV, setRojasV] = useState(0);
-
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Modal: asignar tarjeta con jugador
+  const [tarjetaModal, setTarjetaModal] = useState<TarjetaModalState | null>(null);
+  const [tarjetaJugador, setTarjetaJugador] = useState<Jugador | null>(null);
+  const [tarjetaMinuto, setTarjetaMinuto] = useState("");
+  const [tarjetaSaving, setTarjetaSaving] = useState(false);
+
+  // Modal: agregar suceso
+  const [sucesosVisible, setSucesosVisible] = useState(false);
+  const [sucTipo, setSucTipo] = useState<TipoEvento>("gol");
+  const [sucEquipo, setSucEquipo] = useState<"local" | "visitante">("local");
+  const [sucJugador, setSucJugador] = useState<Jugador | null>(null);
+  const [sucMinuto, setSucMinuto] = useState("");
+  const [sucSaving, setSucSaving] = useState(false);
+
+  // Contadores de tarjetas calculados desde los eventos reales
+  const amarillasL = eventos.filter(e => e.equipo_id === partido?.equipo_local_id    && e.tipo_evento === "amarilla").length;
+  const amarillasV = eventos.filter(e => e.equipo_id === partido?.equipo_visitante_id && e.tipo_evento === "amarilla").length;
+  const rojasL     = eventos.filter(e => e.equipo_id === partido?.equipo_local_id    && e.tipo_evento === "roja").length;
+  const rojasV     = eventos.filter(e => e.equipo_id === partido?.equipo_visitante_id && e.tipo_evento === "roja").length;
+
+  const sucJugadores = sucEquipo === "local" ? jugadoresLocal : jugadoresVisit;
 
   const cargarDatos = async () => {
     try {
@@ -46,7 +82,6 @@ export default function GestionarPartidoScreen() {
       setGolesL(p.goles_local ?? 0);
       setGolesV(p.goles_visitante ?? 0);
       setEstado(p.estado);
-
       const [evs, jLocal, jVisit] = await Promise.all([
         getEventosByPartido(String(partidoId)),
         getJugadoresByEquipo(String(p.equipo_local_id)),
@@ -55,13 +90,6 @@ export default function GestionarPartidoScreen() {
       setEventos(evs);
       setJugadoresLocal(jLocal);
       setJugadoresVisit(jVisit);
-
-      // Inicializar contadores de tarjetas a nivel de equipo (sin jugador específico)
-      const teamEvs = evs.filter((e) => !e.jugador_id);
-      setAmarillasL(teamEvs.filter((e) => e.equipo_id === p.equipo_local_id && e.tipo_evento === "amarilla").length);
-      setAmarillasV(teamEvs.filter((e) => e.equipo_id === p.equipo_visitante_id && e.tipo_evento === "amarilla").length);
-      setRojasL(teamEvs.filter((e) => e.equipo_id === p.equipo_local_id && e.tipo_evento === "roja").length);
-      setRojasV(teamEvs.filter((e) => e.equipo_id === p.equipo_visitante_id && e.tipo_evento === "roja").length);
     } catch {
       Alert.alert("Error", "No se pudieron cargar los datos del partido.");
     } finally {
@@ -69,52 +97,90 @@ export default function GestionarPartidoScreen() {
     }
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, [partidoId]);
-
-  const syncTarjetas = async (
-    equipoId: number,
-    tipo: "amarilla" | "roja",
-    targetCount: number,
-    currentEvs: Evento[]
-  ) => {
-    const teamEvs = currentEvs.filter(
-      (e) => e.equipo_id === equipoId && e.tipo_evento === tipo && !e.jugador_id
-    );
-    const delta = targetCount - teamEvs.length;
-    if (delta > 0) {
-      for (let i = 0; i < delta; i++) {
-        await createEvento({ partido_id: Number(partidoId), equipo_id: equipoId, tipo_evento: tipo });
-      }
-    } else if (delta < 0) {
-      for (const ev of teamEvs.slice(targetCount)) {
-        await deleteEvento(String(ev.id));
-      }
-    }
-  };
+  useEffect(() => { cargarDatos(); }, [partidoId]);
 
   const handleUpdateScore = async () => {
     if (!partido) return;
     try {
       setActionLoading(true);
-      await updatePartido(String(partidoId), {
-        goles_local: golesL,
-        goles_visitante: golesV,
-        estado,
-      });
-      await Promise.all([
-        syncTarjetas(partido.equipo_local_id, "amarilla", amarillasL, eventos),
-        syncTarjetas(partido.equipo_visitante_id, "amarilla", amarillasV, eventos),
-        syncTarjetas(partido.equipo_local_id, "roja", rojasL, eventos),
-        syncTarjetas(partido.equipo_visitante_id, "roja", rojasV, eventos),
-      ]);
+      await updatePartido(String(partidoId), { goles_local: golesL, goles_visitante: golesV, estado });
       Alert.alert("¡Éxito!", "Partido actualizado correctamente.");
       cargarDatos();
     } catch {
       Alert.alert("Error", "No se pudo actualizar el marcador.");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  // Tarjeta modal
+  const openTarjetaModal = (tipo: "amarilla" | "roja", jugadores: Jugador[], equipoId: number) => {
+    setTarjetaJugador(null);
+    setTarjetaMinuto("");
+    setTarjetaModal({ tipo, equipoId, jugadores });
+  };
+
+  const handleSaveTarjeta = async () => {
+    if (!tarjetaJugador) { Alert.alert("Selecciona un jugador"); return; }
+    try {
+      setTarjetaSaving(true);
+      await createEvento({
+        partido_id: Number(partidoId),
+        jugador_id: tarjetaJugador.id,
+        equipo_id: tarjetaModal!.equipoId,
+        tipo_evento: tarjetaModal!.tipo,
+        minuto: tarjetaMinuto ? Number(tarjetaMinuto) : null,
+      });
+      setTarjetaModal(null);
+      cargarDatos();
+    } catch {
+      Alert.alert("Error", "No se pudo registrar la tarjeta.");
+    } finally {
+      setTarjetaSaving(false);
+    }
+  };
+
+  const removeTarjeta = async (equipoId: number, tipo: "amarilla" | "roja") => {
+    const last = [...eventos]
+      .filter(e => e.equipo_id === equipoId && e.tipo_evento === tipo)
+      .sort((a, b) => b.id - a.id)[0];
+    if (!last) return;
+    try {
+      await deleteEvento(String(last.id));
+      cargarDatos();
+    } catch {
+      Alert.alert("Error", "No se pudo eliminar la tarjeta.");
+    }
+  };
+
+  // Sucesos modal
+  const openSucesosModal = () => {
+    setSucTipo("gol");
+    setSucEquipo("local");
+    setSucJugador(null);
+    setSucMinuto("");
+    setSucesosVisible(true);
+  };
+
+  const handleSaveSuceso = async () => {
+    if (!partido) return;
+    if (!sucJugador) { Alert.alert("Selecciona un jugador"); return; }
+    const equipoId = sucEquipo === "local" ? partido.equipo_local_id : partido.equipo_visitante_id;
+    try {
+      setSucSaving(true);
+      await createEvento({
+        partido_id: Number(partidoId),
+        jugador_id: sucJugador.id,
+        equipo_id: equipoId,
+        tipo_evento: sucTipo,
+        minuto: sucMinuto ? Number(sucMinuto) : null,
+      });
+      setSucesosVisible(false);
+      cargarDatos();
+    } catch {
+      Alert.alert("Error", "No se pudo registrar el suceso.");
+    } finally {
+      setSucSaving(false);
     }
   };
 
@@ -150,6 +216,8 @@ export default function GestionarPartidoScreen() {
     );
   }
 
+  if (!partido) return null;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <LinearGradient colors={[colors.headerGradientStart, colors.headerGradientEnd]} style={styles.header}>
@@ -162,26 +230,27 @@ export default function GestionarPartidoScreen() {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* ── Marcador y Tarjetas ── */}
         <View style={[styles.scoreCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
 
-          {/* Marcador */}
+          {/* Goles */}
           <View style={styles.teamsRow}>
             <View style={styles.teamSide}>
               <Text style={[styles.teamLabel, { color: colors.textMuted }]}>LOCAL</Text>
               <Text style={[styles.teamTitle, { color: colors.text }]} numberOfLines={2}>
-                {partido?.equipo_local?.nombre}
+                {partido.equipo_local?.nombre}
               </Text>
               <View style={styles.scoreControl}>
                 <TouchableOpacity
                   style={[styles.scoreBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setGolesL((g) => Math.max(0, g - 1))}
+                  onPress={() => setGolesL(g => Math.max(0, g - 1))}
                 >
                   <Text style={[styles.scoreBtnText, { color: colors.text }]}>−</Text>
                 </TouchableOpacity>
                 <Text style={[styles.scoreNumber, { color: colors.accent }]}>{golesL}</Text>
                 <TouchableOpacity
                   style={[styles.scoreBtn, { backgroundColor: colors.accent }]}
-                  onPress={() => setGolesL((g) => g + 1)}
+                  onPress={() => setGolesL(g => g + 1)}
                 >
                   <Text style={[styles.scoreBtnText, { color: colors.fabText }]}>+</Text>
                 </TouchableOpacity>
@@ -193,19 +262,19 @@ export default function GestionarPartidoScreen() {
             <View style={styles.teamSide}>
               <Text style={[styles.teamLabel, { color: colors.textMuted }]}>VISITANTE</Text>
               <Text style={[styles.teamTitle, { color: colors.text }]} numberOfLines={2}>
-                {partido?.equipo_visitante?.nombre}
+                {partido.equipo_visitante?.nombre}
               </Text>
               <View style={styles.scoreControl}>
                 <TouchableOpacity
                   style={[styles.scoreBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setGolesV((g) => Math.max(0, g - 1))}
+                  onPress={() => setGolesV(g => Math.max(0, g - 1))}
                 >
                   <Text style={[styles.scoreBtnText, { color: colors.text }]}>−</Text>
                 </TouchableOpacity>
                 <Text style={[styles.scoreNumber, { color: colors.accent }]}>{golesV}</Text>
                 <TouchableOpacity
                   style={[styles.scoreBtn, { backgroundColor: colors.accent }]}
-                  onPress={() => setGolesV((g) => g + 1)}
+                  onPress={() => setGolesV(g => g + 1)}
                 >
                   <Text style={[styles.scoreBtnText, { color: colors.fabText }]}>+</Text>
                 </TouchableOpacity>
@@ -217,19 +286,20 @@ export default function GestionarPartidoScreen() {
           <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Tarjetas</Text>
           <View style={styles.tarjetasRow}>
+            {/* LOCAL */}
             <View style={styles.tarjetasSide}>
               <View style={styles.tarjetaControl}>
                 <Text style={styles.cardEmoji}>🟨</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setAmarillasL((n) => Math.max(0, n - 1))}
+                  onPress={() => removeTarjeta(partido.equipo_local_id, "amarilla")}
                 >
                   <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
                 </TouchableOpacity>
                 <Text style={[styles.cardCount, { color: "#fbbf24" }]}>{amarillasL}</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: "#fbbf24" }]}
-                  onPress={() => setAmarillasL((n) => n + 1)}
+                  onPress={() => openTarjetaModal("amarilla", jugadoresLocal, partido.equipo_local_id)}
                 >
                   <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
                 </TouchableOpacity>
@@ -238,14 +308,14 @@ export default function GestionarPartidoScreen() {
                 <Text style={styles.cardEmoji}>🟥</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setRojasL((n) => Math.max(0, n - 1))}
+                  onPress={() => removeTarjeta(partido.equipo_local_id, "roja")}
                 >
                   <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
                 </TouchableOpacity>
                 <Text style={[styles.cardCount, { color: "#ef4444" }]}>{rojasL}</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: "#ef4444" }]}
-                  onPress={() => setRojasL((n) => n + 1)}
+                  onPress={() => openTarjetaModal("roja", jugadoresLocal, partido.equipo_local_id)}
                 >
                   <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
                 </TouchableOpacity>
@@ -254,19 +324,20 @@ export default function GestionarPartidoScreen() {
 
             <View style={[styles.verticalDivider, { backgroundColor: colors.cardBorder }]} />
 
+            {/* VISITANTE */}
             <View style={styles.tarjetasSide}>
               <View style={styles.tarjetaControl}>
                 <Text style={styles.cardEmoji}>🟨</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setAmarillasV((n) => Math.max(0, n - 1))}
+                  onPress={() => removeTarjeta(partido.equipo_visitante_id, "amarilla")}
                 >
                   <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
                 </TouchableOpacity>
                 <Text style={[styles.cardCount, { color: "#fbbf24" }]}>{amarillasV}</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: "#fbbf24" }]}
-                  onPress={() => setAmarillasV((n) => n + 1)}
+                  onPress={() => openTarjetaModal("amarilla", jugadoresVisit, partido.equipo_visitante_id)}
                 >
                   <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
                 </TouchableOpacity>
@@ -275,14 +346,14 @@ export default function GestionarPartidoScreen() {
                 <Text style={styles.cardEmoji}>🟥</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setRojasV((n) => Math.max(0, n - 1))}
+                  onPress={() => removeTarjeta(partido.equipo_visitante_id, "roja")}
                 >
                   <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
                 </TouchableOpacity>
                 <Text style={[styles.cardCount, { color: "#ef4444" }]}>{rojasV}</Text>
                 <TouchableOpacity
                   style={[styles.cardBtn, { backgroundColor: "#ef4444" }]}
-                  onPress={() => setRojasV((n) => n + 1)}
+                  onPress={() => openTarjetaModal("roja", jugadoresVisit, partido.equipo_visitante_id)}
                 >
                   <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
                 </TouchableOpacity>
@@ -294,7 +365,7 @@ export default function GestionarPartidoScreen() {
           <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Estado del Partido</Text>
           <View style={styles.statusRow}>
-            {["Pendiente", "En juego", "Finalizado"].map((s) => (
+            {["Pendiente", "En juego", "Finalizado"].map(s => (
               <TouchableOpacity
                 key={s}
                 style={[
@@ -325,78 +396,285 @@ export default function GestionarPartidoScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Sucesos del partido */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Sucesos del Partido</Text>
+        {/* ── Sucesos del Partido ── */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Sucesos del Partido</Text>
+          <TouchableOpacity style={[styles.addSucesoBtn, { backgroundColor: colors.accent }]} onPress={openSucesosModal}>
+            <Ionicons name="add" size={16} color={colors.fabText} />
+            <Text style={[styles.addSucesoBtnText, { color: colors.fabText }]}>Agregar Suceso</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={[styles.eventsCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
-          {eventos.map((ev) => (
-            <View key={ev.id} style={[styles.eventRow, { borderBottomColor: colors.cardFooterBorder }]}>
-              <Ionicons
-                name={ev.tipo_evento === "gol" ? "football" : "square"}
-                size={18}
-                color={ev.tipo_evento === "gol" ? colors.accent : ev.tipo_evento === "amarilla" ? "#fbbf24" : "#ef4444"}
-              />
-              <Text style={[styles.eventText, { color: colors.textSecondary }]}>
-                <Text style={{ fontWeight: "800" }}>{ev.tipo_evento.toUpperCase()}</Text>
-                {ev.jugador_id
-                  ? ` - ${jugadoresLocal.find((j) => j.id === ev.jugador_id)?.nombre ?? jugadoresVisit.find((j) => j.id === ev.jugador_id)?.nombre ?? "Jugador"}`
-                  : ev.equipo_id === partido?.equipo_local_id
-                    ? ` - ${partido?.equipo_local?.nombre}`
-                    : ` - ${partido?.equipo_visitante?.nombre}`
-                }
-              </Text>
-              <TouchableOpacity onPress={() => handleDeleteEvento(ev.id)}>
-                <Ionicons name="close-circle" size={20} color={colors.danger} />
-              </TouchableOpacity>
-            </View>
-          ))}
           {eventos.length === 0 && (
             <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay eventos registrados.</Text>
           )}
+          {eventos.map(ev => {
+            const cfg = TIPO_CONFIG[ev.tipo_evento] ?? TIPO_CONFIG.gol;
+            const jugador = jugadoresLocal.find(j => j.id === ev.jugador_id)
+              ?? jugadoresVisit.find(j => j.id === ev.jugador_id);
+            const equipoNombre = ev.equipo_id === partido.equipo_local_id
+              ? partido.equipo_local?.nombre
+              : partido.equipo_visitante?.nombre;
+            return (
+              <View key={ev.id} style={[styles.eventRow, { borderBottomColor: colors.cardFooterBorder }]}>
+                <View style={[styles.eventIconBox, { backgroundColor: cfg.bg }]}>
+                  <Ionicons name={cfg.icon as any} size={15} color={cfg.color} />
+                </View>
+                <View style={styles.eventInfo}>
+                  <View style={styles.eventTopRow}>
+                    <Text style={[styles.eventType, { color: colors.text }]}>{cfg.label}</Text>
+                    {ev.minuto != null && (
+                      <View style={[styles.minuteBadge, { backgroundColor: colors.surface }]}>
+                        <Text style={[styles.minuteText, { color: colors.textMuted }]}>{ev.minuto}'</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.eventPlayer, { color: colors.textSecondary }]}>
+                    {jugador ? `${jugador.nombre} ${jugador.apellido}` : equipoNombre ?? "—"}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => handleDeleteEvento(ev.id)}>
+                  <Ionicons name="close-circle" size={20} color={colors.danger} />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </View>
 
-        {/* Eventos por jugador */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Registrar Goles / Tarjetas</Text>
+        {/* ── Registrar por jugador ── */}
+        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 30, marginBottom: 14 }]}>
+          Registrar por Jugador
+        </Text>
 
-        <Text style={[styles.subTitle, { color: colors.accent }]}>{partido?.equipo_local?.nombre} (Local)</Text>
+        <Text style={[styles.subTitle, { color: colors.accent }]}>{partido.equipo_local?.nombre} (Local)</Text>
         <View style={[styles.playersList, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
-          {jugadoresLocal.map((j) => (
-            <PlayerEventItem
-              key={j.id}
-              player={j}
-              playerEvents={eventos.filter((e) => e.jugador_id === j.id)}
-              onAdd={handleAddEvento}
-              onRemove={handleDeleteEvento}
-              colors={colors}
-            />
-          ))}
+          {jugadoresLocal.length === 0
+            ? <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores registrados.</Text>
+            : jugadoresLocal.map(j => (
+                <PlayerEventItem
+                  key={j.id} player={j}
+                  playerEvents={eventos.filter(e => e.jugador_id === j.id)}
+                  onAdd={handleAddEvento} onRemove={handleDeleteEvento} colors={colors}
+                />
+              ))
+          }
         </View>
 
-        <Text style={[styles.subTitle, { color: colors.accent }]}>{partido?.equipo_visitante?.nombre} (Visitante)</Text>
+        <Text style={[styles.subTitle, { color: colors.accent }]}>{partido.equipo_visitante?.nombre} (Visitante)</Text>
         <View style={[styles.playersList, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
-          {jugadoresVisit.map((j) => (
-            <PlayerEventItem
-              key={j.id}
-              player={j}
-              playerEvents={eventos.filter((e) => e.jugador_id === j.id)}
-              onAdd={handleAddEvento}
-              onRemove={handleDeleteEvento}
-              colors={colors}
-            />
-          ))}
+          {jugadoresVisit.length === 0
+            ? <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores registrados.</Text>
+            : jugadoresVisit.map(j => (
+                <PlayerEventItem
+                  key={j.id} player={j}
+                  playerEvents={eventos.filter(e => e.jugador_id === j.id)}
+                  onAdd={handleAddEvento} onRemove={handleDeleteEvento} colors={colors}
+                />
+              ))
+          }
         </View>
 
         <View style={{ height: 60 }} />
       </ScrollView>
+
+      {/* ══ Modal: Asignar Tarjeta con Jugador ══ */}
+      <Modal visible={tarjetaModal !== null} transparent animationType="fade">
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setTarjetaModal(null)} />
+          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              {tarjetaModal?.tipo === "amarilla" ? "🟨 Tarjeta Amarilla" : "🟥 Tarjeta Roja"}
+            </Text>
+
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Minuto (opcional)</Text>
+            <TextInput
+              style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.cardBorder }]}
+              value={tarjetaMinuto}
+              onChangeText={setTarjetaMinuto}
+              keyboardType="numeric"
+              placeholder="ej. 45"
+              placeholderTextColor={colors.textMuted}
+            />
+
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Seleccionar jugador</Text>
+            <ScrollView style={styles.modalPlayerList} nestedScrollEnabled>
+              {(tarjetaModal?.jugadores ?? []).length === 0 && (
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores en este equipo.</Text>
+              )}
+              {(tarjetaModal?.jugadores ?? []).map(j => (
+                <TouchableOpacity
+                  key={j.id}
+                  style={[
+                    styles.modalPlayerOption,
+                    { borderColor: colors.cardBorder },
+                    tarjetaJugador?.id === j.id && { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+                  ]}
+                  onPress={() => setTarjetaJugador(j)}
+                >
+                  <Text style={[styles.modalPlayerName, { color: colors.text }]}>
+                    {j.numero_camiseta ? `#${j.numero_camiseta}  ` : ""}{j.nombre} {j.apellido}
+                  </Text>
+                  {tarjetaJugador?.id === j.id && (
+                    <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                onPress={() => setTarjetaModal(null)}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.textSecondary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: colors.accent }, tarjetaSaving && { opacity: 0.7 }]}
+                onPress={handleSaveTarjeta}
+                disabled={tarjetaSaving}
+              >
+                {tarjetaSaving
+                  ? <ActivityIndicator color={colors.fabText} size="small" />
+                  : <Text style={[styles.modalBtnText, { color: colors.fabText }]}>Guardar</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* ══ Modal: Agregar Suceso ══ */}
+      <Modal visible={sucesosVisible} transparent animationType="fade">
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setSucesosVisible(false)} />
+          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Agregar Suceso</Text>
+
+            {/* Tipo */}
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Tipo de evento</Text>
+            <View style={styles.sucTipoRow}>
+              {(["gol", "amarilla", "roja", "sustitucion"] as TipoEvento[]).map(t => {
+                const cfg = TIPO_CONFIG[t];
+                const active = sucTipo === t;
+                return (
+                  <TouchableOpacity
+                    key={t}
+                    style={[
+                      styles.sucTipoBtn,
+                      { borderColor: colors.cardBorder, backgroundColor: colors.surface },
+                      active && { backgroundColor: cfg.color, borderColor: cfg.color },
+                    ]}
+                    onPress={() => setSucTipo(t)}
+                  >
+                    <Text style={styles.sucTipoBtnEmoji}>
+                      {t === "gol" ? "⚽" : t === "amarilla" ? "🟨" : t === "roja" ? "🟥" : "🔄"}
+                    </Text>
+                    <Text style={[styles.sucTipoBtnLabel, { color: active ? "#fff" : colors.textSecondary }]}>
+                      {cfg.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Equipo */}
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Equipo</Text>
+            <View style={styles.sucEquipoRow}>
+              {(["local", "visitante"] as const).map(eq => (
+                <TouchableOpacity
+                  key={eq}
+                  style={[
+                    styles.sucEquipoBtn,
+                    { borderColor: colors.cardBorder, backgroundColor: colors.surface },
+                    sucEquipo === eq && { backgroundColor: colors.accent, borderColor: colors.accent },
+                  ]}
+                  onPress={() => { setSucEquipo(eq); setSucJugador(null); }}
+                >
+                  <Text
+                    style={[
+                      styles.sucEquipoBtnText,
+                      { color: colors.textSecondary },
+                      sucEquipo === eq && { color: colors.fabText },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {eq === "local" ? partido.equipo_local?.nombre : partido.equipo_visitante?.nombre}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Minuto */}
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Minuto (opcional)</Text>
+            <TextInput
+              style={[styles.modalInput, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.cardBorder }]}
+              value={sucMinuto}
+              onChangeText={setSucMinuto}
+              keyboardType="numeric"
+              placeholder="ej. 67"
+              placeholderTextColor={colors.textMuted}
+            />
+
+            {/* Jugador */}
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Jugador</Text>
+            <ScrollView style={[styles.modalPlayerList, { maxHeight: 140 }]} nestedScrollEnabled>
+              {sucJugadores.length === 0 && (
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores en este equipo.</Text>
+              )}
+              {sucJugadores.map(j => (
+                <TouchableOpacity
+                  key={j.id}
+                  style={[
+                    styles.modalPlayerOption,
+                    { borderColor: colors.cardBorder },
+                    sucJugador?.id === j.id && { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+                  ]}
+                  onPress={() => setSucJugador(j)}
+                >
+                  <Text style={[styles.modalPlayerName, { color: colors.text }]}>
+                    {j.numero_camiseta ? `#${j.numero_camiseta}  ` : ""}{j.nombre} {j.apellido}
+                  </Text>
+                  {sucJugador?.id === j.id && (
+                    <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                onPress={() => setSucesosVisible(false)}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.textSecondary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: colors.accent }, sucSaving && { opacity: 0.7 }]}
+                onPress={handleSaveSuceso}
+                disabled={sucSaving}
+              >
+                {sucSaving
+                  ? <ActivityIndicator color={colors.fabText} size="small" />
+                  : <Text style={[styles.modalBtnText, { color: colors.fabText }]}>Guardar</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
 
 function PlayerEventItem({
-  player,
-  playerEvents,
-  onAdd,
-  onRemove,
-  colors,
+  player, playerEvents, onAdd, onRemove, colors,
 }: {
   player: Jugador;
   playerEvents: Evento[];
@@ -404,8 +682,8 @@ function PlayerEventItem({
   onRemove: (id: number) => void;
   colors: any;
 }) {
-  const amarillaEvent = playerEvents.find((e) => e.tipo_evento === "amarilla");
-  const rojaEvent = playerEvents.find((e) => e.tipo_evento === "roja");
+  const amarillaEvent = playerEvents.find(e => e.tipo_evento === "amarilla");
+  const rojaEvent = playerEvents.find(e => e.tipo_evento === "roja");
 
   return (
     <View style={[styles.playerItem, { borderBottomColor: colors.cardFooterBorder }]}>
@@ -448,177 +726,92 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 24,
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
-  backBtn: {
-    backgroundColor: "rgba(52,211,153,0.1)",
-    padding: 8,
-    borderRadius: 12,
-    marginRight: 14,
-  },
+  backBtn: { backgroundColor: "rgba(52,211,153,0.1)", padding: 8, borderRadius: 12, marginRight: 14 },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
   scroll: { padding: 16 },
-  scoreCard: {
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-  },
+  scoreCard: { borderRadius: 24, padding: 20, borderWidth: 1 },
+
   // Goles
-  teamsRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  teamSide: {
-    flex: 1,
-    alignItems: "center",
-  },
-  teamLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    marginBottom: 6,
-    letterSpacing: 0.5,
-  },
-  teamTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 14,
-  },
-  scoreControl: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  scoreBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  scoreBtnText: {
-    fontSize: 22,
-    fontWeight: "900",
-    lineHeight: 26,
-  },
-  scoreNumber: {
-    fontSize: 38,
-    fontWeight: "900",
-    minWidth: 44,
-    textAlign: "center",
-  },
-  vsText: {
-    fontSize: 13,
-    fontWeight: "800",
-    marginHorizontal: 6,
-    marginTop: 52,
-    letterSpacing: 1,
-  },
+  teamsRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 },
+  teamSide: { flex: 1, alignItems: "center" },
+  teamLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", marginBottom: 6, letterSpacing: 0.5 },
+  teamTitle: { fontSize: 14, fontWeight: "800", textAlign: "center", marginBottom: 14 },
+  scoreControl: { flexDirection: "row", alignItems: "center", gap: 10 },
+  scoreBtn: { width: 38, height: 38, borderRadius: 10, justifyContent: "center", alignItems: "center", borderWidth: 1 },
+  scoreBtnText: { fontSize: 22, fontWeight: "900", lineHeight: 26 },
+  scoreNumber: { fontSize: 38, fontWeight: "900", minWidth: 44, textAlign: "center" },
+  vsText: { fontSize: 13, fontWeight: "800", marginHorizontal: 6, marginTop: 52, letterSpacing: 1 },
+
   // Tarjetas
-  divider: {
-    height: 1,
-    marginVertical: 16,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 12,
-  },
-  tarjetasRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  tarjetasSide: {
-    flex: 1,
-    gap: 10,
-  },
-  verticalDivider: {
-    width: 1,
-    height: 60,
-    marginHorizontal: 12,
-    alignSelf: "center",
-  },
-  tarjetaControl: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  cardEmoji: {
-    fontSize: 18,
-    width: 24,
-  },
-  cardBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  cardBtnText: {
-    fontSize: 18,
-    fontWeight: "900",
-    lineHeight: 22,
-  },
-  cardCount: {
-    fontSize: 20,
-    fontWeight: "900",
-    minWidth: 28,
-    textAlign: "center",
-  },
+  divider: { height: 1, marginVertical: 16 },
+  sectionLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 },
+  tarjetasRow: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+  tarjetasSide: { flex: 1, gap: 10 },
+  verticalDivider: { width: 1, height: 60, marginHorizontal: 12, alignSelf: "center" },
+  tarjetaControl: { flexDirection: "row", alignItems: "center", gap: 6 },
+  cardEmoji: { fontSize: 18, width: 24 },
+  cardBtn: { width: 30, height: 30, borderRadius: 8, justifyContent: "center", alignItems: "center", borderWidth: 1 },
+  cardBtnText: { fontSize: 18, fontWeight: "900", lineHeight: 22 },
+  cardCount: { fontSize: 20, fontWeight: "900", minWidth: 28, textAlign: "center" },
+
   // Estado
   statusRow: { flexDirection: "row", gap: 10 },
-  statusOption: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 1,
-  },
+  statusOption: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1 },
   statusOptionText: { fontSize: 12, fontWeight: "700" },
-  updateBtn: {
-    borderRadius: 14,
-    height: 52,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 20,
-  },
+  updateBtn: { borderRadius: 14, height: 52, justifyContent: "center", alignItems: "center", marginTop: 20 },
   updateBtnText: { fontSize: 15, fontWeight: "800" },
-  // Sucesos
-  sectionTitle: { fontSize: 18, fontWeight: "800", marginTop: 30, marginBottom: 14 },
-  subTitle: { fontSize: 14, fontWeight: "800", marginTop: 16, marginBottom: 8, textTransform: "uppercase" },
-  eventsCard: {
-    borderRadius: 16,
-    padding: 16,
-  },
-  eventRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  eventText: { flex: 1, fontSize: 14, marginLeft: 12 },
+
+  // Sucesos header
+  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 30, marginBottom: 14 },
+  sectionTitle: { fontSize: 18, fontWeight: "800" },
+  addSucesoBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10 },
+  addSucesoBtnText: { fontSize: 13, fontWeight: "800" },
+
+  // Cronología
+  eventsCard: { borderRadius: 16, padding: 12 },
+  eventRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, gap: 10 },
+  eventIconBox: { width: 32, height: 32, borderRadius: 8, justifyContent: "center", alignItems: "center" },
+  eventInfo: { flex: 1 },
+  eventTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  eventType: { fontSize: 13, fontWeight: "800" },
+  minuteBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  minuteText: { fontSize: 11, fontWeight: "700" },
+  eventPlayer: { fontSize: 12, marginTop: 2 },
   emptyText: { fontSize: 14, textAlign: "center", paddingVertical: 10 },
-  playersList: {
-    borderRadius: 16,
-    padding: 8,
-  },
-  playerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 12,
-    borderBottomWidth: 1,
-  },
+
+  // Jugadores
+  subTitle: { fontSize: 14, fontWeight: "800", marginTop: 16, marginBottom: 8, textTransform: "uppercase" },
+  playersList: { borderRadius: 16, padding: 8 },
+  playerItem: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12, borderBottomWidth: 1 },
   playerItemName: { fontSize: 14, fontWeight: "600", flex: 1, marginRight: 8 },
   playerActions: { flexDirection: "row", gap: 15 },
-  actionIcon: {
-    padding: 6,
-    borderRadius: 8,
+  actionIcon: { padding: 6, borderRadius: 8 },
+
+  // Modales
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.55)", padding: 20 },
+  modalBox: { width: "100%", maxHeight: "88%", borderRadius: 20, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: "900", marginBottom: 16 },
+  modalLabel: { fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8, marginTop: 12 },
+  modalInput: { borderRadius: 10, borderWidth: 1, height: 44, paddingHorizontal: 12, fontSize: 15 },
+  modalPlayerList: { maxHeight: 180, marginTop: 4 },
+  modalPlayerOption: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, marginBottom: 6,
   },
+  modalPlayerName: { fontSize: 14, fontWeight: "600", flex: 1 },
+  modalButtons: { flexDirection: "row", gap: 10, marginTop: 20 },
+  modalBtn: { flex: 1, height: 46, borderRadius: 12, justifyContent: "center", alignItems: "center", borderWidth: 1 },
+  modalBtnPrimary: { borderWidth: 0 },
+  modalBtnText: { fontSize: 14, fontWeight: "800" },
+
+  // Sucesos modal - tipo
+  sucTipoRow: { flexDirection: "row", gap: 6 },
+  sucTipoBtn: { flex: 1, alignItems: "center", paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
+  sucTipoBtnEmoji: { fontSize: 16 },
+  sucTipoBtnLabel: { fontSize: 10, fontWeight: "700", marginTop: 2 },
+
+  // Sucesos modal - equipo
+  sucEquipoRow: { flexDirection: "row", gap: 10 },
+  sucEquipoBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1 },
+  sucEquipoBtnText: { fontSize: 12, fontWeight: "700" },
 });

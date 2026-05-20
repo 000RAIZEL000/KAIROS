@@ -5,7 +5,7 @@ export type Evento = {
   partido_id: number;
   jugador_id?: number | null;
   equipo_id?: number | null;
-  tipo_evento: "gol" | "amarilla" | "roja" | "asistencia";
+  tipo_evento: "gol" | "amarilla" | "roja" | "asistencia" | "sustitucion";
   minuto?: number | null;
   valor?: number | null;
   descripcion?: string | null;
@@ -17,7 +17,7 @@ export type EventoPayload = {
   partido_id: number;
   jugador_id?: number | null;
   equipo_id?: number | null;
-  tipo_evento: "gol" | "amarilla" | "roja" | "asistencia";
+  tipo_evento: "gol" | "amarilla" | "roja" | "asistencia" | "sustitucion";
   minuto?: number | null;
   valor?: number | null;
   descripcion?: string | null;
