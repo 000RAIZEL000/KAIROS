@@ -63,8 +63,13 @@ export default function PartidosScreen() {
         <Text style={[styles.fechaText, { color: colors.textSecondary }]}>
           {item.fecha ? new Date(item.fecha).toLocaleDateString() : "Fecha pendiente"}
         </Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado) }]}>
-          <Text style={[styles.statusText, { color: colors.textOnHeader }]}>{item.estado}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado) }]}>
+            <Text style={[styles.statusText, { color: colors.textOnHeader }]}>{item.estado}</Text>
+          </View>
+          {user?.role === "admin" && (
+            <Ionicons name="chevron-forward" size={16} color={colors.accent} />
+          )}
         </View>
       </View>
 

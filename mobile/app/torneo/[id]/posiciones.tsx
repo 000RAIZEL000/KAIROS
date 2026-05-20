@@ -18,7 +18,7 @@ import type { TablaRow, GoleadorRow, TarjetaRow } from "../../../src/api/stats";
 
 export default function PosicionesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [tabla, setTabla] = useState<TablaRow[]>([]);
   const [goleadores, setGoleadores] = useState<GoleadorRow[]>([]);
   const [tarjetas, setTarjetas] = useState<TarjetaRow[]>([]);
@@ -62,7 +62,10 @@ export default function PosicionesScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Estadísticas</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>Estadísticas</Text>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
 
         <View style={[styles.tabContainer, { backgroundColor: "rgba(0,0,0,0.2)" }]}>
@@ -203,6 +206,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 14,
   },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 24, fontWeight: "900" },
   tabContainer: {
     flexDirection: "row",

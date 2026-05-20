@@ -51,3 +51,20 @@ class EventoPartidoSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('El jugador no pertenece al equipo enviado')
 
         return data
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        if 'partido_id' in data and 'partido' not in data:
+            data['partido'] = data['partido_id']
+        if 'jugador_id' in data and 'jugador' not in data:
+            data['jugador'] = data['jugador_id']
+        if 'equipo_id' in data and 'equipo' not in data:
+            data['equipo'] = data['equipo_id']
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['partido_id'] = instance.partido.id if instance.partido else None
+        representation['jugador_id'] = instance.jugador.id if instance.jugador else None
+        representation['equipo_id'] = instance.equipo.id if instance.equipo else None
+        return representation

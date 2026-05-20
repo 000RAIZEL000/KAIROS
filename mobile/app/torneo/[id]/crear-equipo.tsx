@@ -19,7 +19,7 @@ import { createEquipo } from "../../../src/api/equipos";
 
 export default function CrearEquipoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [nombre, setNombre] = useState("");
   const [grupo, setGrupo] = useState("");
   const [colorPrincipal, setColorPrincipal] = useState("");
@@ -60,7 +60,10 @@ export default function CrearEquipoScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Nuevo Equipo</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>Nuevo Equipo</Text>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -154,6 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 14,
   },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "800" },
   form: { padding: 20, paddingBottom: 40 },
   label: {

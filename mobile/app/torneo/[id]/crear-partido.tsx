@@ -21,7 +21,7 @@ import { createPartido } from "../../../src/api/partidos";
 
 export default function CrearPartidoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [localId, setLocalId] = useState<number | null>(null);
   const [visitanteId, setVisitanteId] = useState<number | null>(null);
@@ -91,7 +91,10 @@ export default function CrearPartidoScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Programar Partido</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>Programar Partido</Text>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -198,6 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 14,
   },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
   form: { padding: 20 },
   label: { fontSize: 13, fontWeight: "700", marginBottom: 10, marginTop: 16, textTransform: "uppercase" },

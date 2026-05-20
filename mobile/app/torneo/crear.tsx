@@ -18,7 +18,7 @@ import { useAppTheme } from "../../src/context/ThemeContext";
 import { createTorneo } from "../../src/api/torneos";
 
 export default function CrearTorneoScreen() {
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [nombre, setNombre] = useState("");
   const [deporte, setDeporte] = useState("");
   const [modalidad, setModalidad] = useState("");
@@ -60,7 +60,9 @@ export default function CrearTorneoScreen() {
             <Ionicons name="arrow-back" size={24} color="#f8fafc" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Nuevo Campeonato</Text>
-          <View style={{ width: 44 }} />
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -158,6 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(52, 211, 153, 0.1)",
     borderRadius: 12,
   },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12 },
   headerTitle: {
     color: "#ffffff",
     fontSize: 20,

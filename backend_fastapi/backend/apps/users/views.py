@@ -1,3 +1,4 @@
+import random
 from datetime import datetime, timedelta
 from django.utils import timezone
 from rest_framework import generics, permissions, status
@@ -5,7 +6,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import User
-from .serializers import UserSerializer, RegisterSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
+from .serializers import (
+    UserSerializer, RegisterSerializer, ForgotPasswordSerializer,
+    ResetPasswordSerializer, CustomTokenObtainPairSerializer
+)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -28,7 +35,7 @@ class ForgotPasswordView(APIView):
             email = serializer.validated_data['email']
             try:
                 user = User.objects.get(email=email)
-                otp = "1234" # Dummy OTP for now
+                otp = str(random.randint(1000, 9999))
                 user.otp_code = otp
                 user.otp_expiration = timezone.now() + timedelta(minutes=10)
                 user.save()

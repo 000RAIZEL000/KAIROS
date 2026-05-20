@@ -24,7 +24,7 @@ export default function EditarJugadorScreen() {
     equipoId: string;
     torneoId: string;
   }>();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
 
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
@@ -97,7 +97,10 @@ export default function EditarJugadorScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Editar Jugador</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>Editar Jugador</Text>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -175,6 +178,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 14,
   },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "800" },
   form: { padding: 16, paddingBottom: 40 },
   label: { fontWeight: "700", marginBottom: 6, marginTop: 14 },

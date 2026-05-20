@@ -91,11 +91,11 @@ export default function LoginScreen() {
 
           <View style={[styles.glassCard, { backgroundColor: colors.glassCard, borderColor: colors.glassCardBorder }]}>
             <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
-              <Ionicons name="mail-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <Ionicons name="mail-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textOnHeader }]}
                 placeholder="Ingresa tu correo"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={colors.textMuted}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -104,28 +104,28 @@ export default function LoginScreen() {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+            <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textOnHeader }]}
                 placeholder="Contraseña secreta"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={colors.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#94a3b8" />
+                <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.forgotBtn} onPress={() => router.push("/forgot-password")}>
-              <Text style={styles.forgotText}>¿Olvidaste tu clave?</Text>
+              <Text style={[styles.forgotText, { color: colors.accent }]}>¿Olvidaste tu clave?</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
+              style={[styles.button, { backgroundColor: colors.accent }, loading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={loading}
               activeOpacity={0.8}
@@ -139,9 +139,9 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>¿Aún no eres parte? </Text>
+            <Text style={[styles.footerText, { color: colors.textMuted }]}>¿Aún no eres parte? </Text>
             <TouchableOpacity onPress={() => router.push("/register")}>
-              <Text style={styles.link}>Crea tu cuenta</Text>
+              <Text style={[styles.link, { color: colors.accent }]}>Crea tu cuenta</Text>
             </TouchableOpacity>
           </View>
 

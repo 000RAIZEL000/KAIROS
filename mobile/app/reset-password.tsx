@@ -44,11 +44,11 @@ export default function ResetPasswordScreen() {
     <View style={[styles.container, { backgroundColor: colors.authBg }]}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.inner}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#f8fafc" />
+          <Ionicons name="arrow-back" size={24} color={colors.textOnHeader} />
         </TouchableOpacity>
 
         <View style={styles.iconCircle}>
-          <Ionicons name="key-outline" size={40} color="#34d399" />
+          <Ionicons name="key-outline" size={40} color={colors.accent} />
         </View>
 
         <Text style={[styles.title, { color: colors.textOnHeader }]}>Nueva Contraseña</Text>
@@ -60,12 +60,12 @@ export default function ResetPasswordScreen() {
         <View style={[styles.card, { backgroundColor: colors.glassCard, borderColor: colors.glassCardBorder }]}>
           <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Token de Validación</Text>
           <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder },
-            prefilledToken ? { backgroundColor: "rgba(52,211,153,0.1)" } : {}]}>
+            prefilledToken ? { backgroundColor: colors.accentSoft } : {}]}>
             <Ionicons name={prefilledToken ? "lock-closed-outline" : "key-outline"} size={20}
-              color={prefilledToken ? "#34d399" : "#94a3b8"} style={{ marginRight: 10 }} />
+              color={prefilledToken ? colors.accent : colors.textMuted} style={{ marginRight: 10 }} />
             <TextInput
-              style={[styles.input, prefilledToken ? { color: "#34d399", fontWeight: "bold" } : {}]}
-              placeholder="0000" placeholderTextColor="#64748b"
+              style={[styles.input, { color: colors.textOnHeader }, prefilledToken ? { color: colors.accent, fontWeight: "bold" } : {}]}
+              placeholder="0000" placeholderTextColor={colors.textMuted}
               value={token} onChangeText={setToken}
               keyboardType="number-pad" maxLength={4}
               editable={!prefilledToken}
@@ -74,15 +74,15 @@ export default function ResetPasswordScreen() {
 
           <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Nueva Contraseña</Text>
           <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
-            <Ionicons name="lock-closed-outline" size={20} color="#94a3b8" style={{ marginRight: 10 }} />
-            <TextInput style={styles.input} placeholder="Mínimo 6 caracteres" placeholderTextColor="#64748b"
+            <Ionicons name="lock-closed-outline" size={20} color={colors.textMuted} style={{ marginRight: 10 }} />
+            <TextInput style={[styles.input, { color: colors.textOnHeader }]} placeholder="Mínimo 6 caracteres" placeholderTextColor={colors.textMuted}
               value={newPassword} onChangeText={setNewPassword} secureTextEntry />
           </View>
 
           <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Confirmar Contraseña</Text>
           <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
-            <Ionicons name="shield-checkmark-outline" size={20} color="#94a3b8" style={{ marginRight: 10 }} />
-            <TextInput style={styles.input} placeholder="Repite tu contraseña" placeholderTextColor="#64748b"
+            <Ionicons name="shield-checkmark-outline" size={20} color={colors.textMuted} style={{ marginRight: 10 }} />
+            <TextInput style={[styles.input, { color: colors.textOnHeader }]} placeholder="Repite tu contraseña" placeholderTextColor={colors.textMuted}
               value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
           </View>
 

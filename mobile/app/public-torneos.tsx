@@ -62,7 +62,7 @@ export default function PublicTorneosScreen() {
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push("/login")} style={styles.loginBtn}>
-              <Ionicons name="person-circle-outline" size={32} color="#34d399" />
+              <Ionicons name="person-circle-outline" size={32} color={colors.accent} />
             </TouchableOpacity>
           </View>
         </View>
@@ -70,18 +70,18 @@ export default function PublicTorneosScreen() {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#34d399" />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : (
         <FlatList
           data={torneos}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#34d399" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="trophy-outline" size={60} color="#065f46" />
-              <Text style={styles.emptyText}>No hay torneos activos aún.</Text>
+              <Ionicons name="trophy-outline" size={60} color={colors.textMuted} />
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay torneos activos aún.</Text>
             </View>
           }
           renderItem={({ item }) => (

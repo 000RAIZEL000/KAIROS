@@ -67,3 +67,9 @@ export async function resetPassword(
     api.post("/auth/reset-password/", { email, token, new_password })
   );
 }
+
+export async function updateProfile(
+  data: Partial<Pick<User, "nombre" | "telefono">>
+): Promise<User> {
+  return extractData(api.patch("/auth/profile/", data));
+}

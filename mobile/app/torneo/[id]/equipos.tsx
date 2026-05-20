@@ -14,7 +14,7 @@ import type { Equipo } from "../../../src/api/equipos";
 export default function EquiposScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -97,6 +97,9 @@ export default function EquiposScreen() {
             <Text style={styles.headerTitle}>Equipos</Text>
             <Text style={styles.headerSub}>{equipos.length} equipo(s) registrado(s)</Text>
           </View>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -136,6 +139,7 @@ const styles = StyleSheet.create({
   header: { paddingTop: Platform.OS === "ios" ? 50 : 36, paddingHorizontal: 20, paddingBottom: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: { backgroundColor: "rgba(52,211,153,0.1)", padding: 8, borderRadius: 10, marginRight: 14 },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "800" },
   headerSub: { color: "#a7f3d0", fontSize: 13, marginTop: 2 },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },

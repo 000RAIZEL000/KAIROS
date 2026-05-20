@@ -51,11 +51,11 @@ export default function ForgotPasswordScreen() {
       <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#f8fafc" />
+            <Ionicons name="arrow-back" size={24} color={colors.textOnHeader} />
           </TouchableOpacity>
 
           <View style={styles.iconCircle}>
-            <Ionicons name="mail-outline" size={40} color="#34d399" />
+            <Ionicons name="mail-outline" size={40} color={colors.accent} />
           </View>
 
           <Text style={[styles.title, { color: colors.textOnHeader }]}>Recuperar Clave</Text>
@@ -66,11 +66,11 @@ export default function ForgotPasswordScreen() {
           <View style={[styles.glassCard, { backgroundColor: colors.glassCard, borderColor: colors.glassCardBorder }]}>
             <Text style={[styles.label, { color: colors.textOnHeaderSoft }]}>Correo Electrónico</Text>
             <View style={[styles.inputContainer, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder }]}>
-              <Ionicons name="mail-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <Ionicons name="mail-outline" size={20} color={colors.textMuted} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.textOnHeader }]}
                 placeholder="ejemplo@correo.com"
-                placeholderTextColor="#64748b"
+                placeholderTextColor={colors.textMuted}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"

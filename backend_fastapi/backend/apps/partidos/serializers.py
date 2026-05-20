@@ -36,3 +36,26 @@ class PartidoSerializer(serializers.ModelSerializer):
         if local and visitante and local == visitante:
             raise serializers.ValidationError('Un equipo no puede jugar contra sí mismo')
         return data
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        if 'torneo_id' in data and 'torneo' not in data:
+            data['torneo'] = data['torneo_id']
+        if 'equipo_local_id' in data and 'equipo_local' not in data:
+            data['equipo_local'] = data['equipo_local_id']
+        if 'equipo_visitante_id' in data and 'equipo_visitante' not in data:
+            data['equipo_visitante'] = data['equipo_visitante_id']
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['torneo_id'] = instance.torneo.id if instance.torneo else None
+        representation['equipo_local_id'] = instance.equipo_local.id if instance.equipo_local else None
+        representation['equipo_visitante_id'] = instance.equipo_visitante.id if instance.equipo_visitante else None
+
+        from apps.equipos.serializers import EquipoSerializer
+        if instance.equipo_local:
+            representation['equipo_local'] = EquipoSerializer(instance.equipo_local).data
+        if instance.equipo_visitante:
+            representation['equipo_visitante'] = EquipoSerializer(instance.equipo_visitante).data
+        return representation

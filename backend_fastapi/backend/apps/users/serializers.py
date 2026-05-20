@@ -31,3 +31,27 @@ class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
     token = serializers.CharField()
     new_password = serializers.CharField()
+
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import exceptions
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        email = attrs.get('email') or attrs.get(self.username_field)
+        password = attrs.get('password')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise exceptions.AuthenticationFailed("El correo electrónico no está registrado")
+
+        if not user.check_password(password):
+            raise exceptions.AuthenticationFailed("Contraseña incorrecta")
+
+        if not user.is_active or not user.activo:
+            raise exceptions.AuthenticationFailed("Esta cuenta está desactivada")
+
+        data = super().validate(attrs)
+        return data
+

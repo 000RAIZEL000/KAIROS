@@ -19,7 +19,7 @@ import { getTorneoById, updateTorneo } from "../../../src/api/torneos";
 
 export default function EditarTorneoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [nombre, setNombre] = useState("");
   const [deporte, setDeporte] = useState("");
   const [modalidad, setModalidad] = useState("");
@@ -88,7 +88,10 @@ export default function EditarTorneoScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Editar Torneo</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>Editar Torneo</Text>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -188,6 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 14,
   },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "800" },
   form: { padding: 20, paddingBottom: 40 },
   label: {

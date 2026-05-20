@@ -41,7 +41,7 @@ const TIPO_CONFIG: Record<string, { label: string; icon: string; color: string; 
 
 export default function GestionarPartidoScreen() {
   const { id: torneoId, partidoId } = useLocalSearchParams<{ id: string; partidoId: string }>();
-  const { colors } = useAppTheme();
+  const { theme, colors, toggleTheme } = useAppTheme();
   const [partido, setPartido] = useState<Partido | null>(null);
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [jugadoresLocal, setJugadoresLocal] = useState<Jugador[]>([]);
@@ -184,21 +184,6 @@ export default function GestionarPartidoScreen() {
     }
   };
 
-  const handleAddEvento = async (jugador: Jugador, tipo: "gol" | "amarilla" | "roja") => {
-    try {
-      await createEvento({
-        partido_id: Number(partidoId),
-        jugador_id: jugador.id,
-        equipo_id: jugador.equipo_id,
-        tipo_evento: tipo,
-        minuto: null,
-      });
-      cargarDatos();
-    } catch {
-      Alert.alert("Error", "No se pudo registrar el evento.");
-    }
-  };
-
   const handleDeleteEvento = async (evId: number) => {
     try {
       await deleteEvento(String(evId));
@@ -225,7 +210,10 @@ export default function GestionarPartidoScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Gestionar Partido</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>Gestionar Partido</Text>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
+            <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -442,39 +430,6 @@ export default function GestionarPartidoScreen() {
           })}
         </View>
 
-        {/* ── Registrar por jugador ── */}
-        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 30, marginBottom: 14 }]}>
-          Registrar por Jugador
-        </Text>
-
-        <Text style={[styles.subTitle, { color: colors.accent }]}>{partido.equipo_local?.nombre} (Local)</Text>
-        <View style={[styles.playersList, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
-          {jugadoresLocal.length === 0
-            ? <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores registrados.</Text>
-            : jugadoresLocal.map(j => (
-                <PlayerEventItem
-                  key={j.id} player={j}
-                  playerEvents={eventos.filter(e => e.jugador_id === j.id)}
-                  onAdd={handleAddEvento} onRemove={handleDeleteEvento} colors={colors}
-                />
-              ))
-          }
-        </View>
-
-        <Text style={[styles.subTitle, { color: colors.accent }]}>{partido.equipo_visitante?.nombre} (Visitante)</Text>
-        <View style={[styles.playersList, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
-          {jugadoresVisit.length === 0
-            ? <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores registrados.</Text>
-            : jugadoresVisit.map(j => (
-                <PlayerEventItem
-                  key={j.id} player={j}
-                  playerEvents={eventos.filter(e => e.jugador_id === j.id)}
-                  onAdd={handleAddEvento} onRemove={handleDeleteEvento} colors={colors}
-                />
-              ))
-          }
-        </View>
-
         <View style={{ height: 60 }} />
       </ScrollView>
 
@@ -673,48 +628,6 @@ export default function GestionarPartidoScreen() {
   );
 }
 
-function PlayerEventItem({
-  player, playerEvents, onAdd, onRemove, colors,
-}: {
-  player: Jugador;
-  playerEvents: Evento[];
-  onAdd: (j: Jugador, tipo: "gol" | "amarilla" | "roja") => void;
-  onRemove: (id: number) => void;
-  colors: any;
-}) {
-  const amarillaEvent = playerEvents.find(e => e.tipo_evento === "amarilla");
-  const rojaEvent = playerEvents.find(e => e.tipo_evento === "roja");
-
-  return (
-    <View style={[styles.playerItem, { borderBottomColor: colors.cardFooterBorder }]}>
-      <Text style={[styles.playerItemName, { color: colors.text }]}>{player.nombre} {player.apellido}</Text>
-      <View style={styles.playerActions}>
-        <TouchableOpacity style={[styles.actionIcon, { backgroundColor: colors.accentSoft }]} onPress={() => onAdd(player, "gol")}>
-          <Ionicons name="football" size={20} color={colors.accent} />
-        </TouchableOpacity>
-        {amarillaEvent ? (
-          <TouchableOpacity style={[styles.actionIcon, { backgroundColor: "#fbbf24" }]} onPress={() => onRemove(amarillaEvent.id)}>
-            <Ionicons name="square" size={20} color="#ffffff" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={[styles.actionIcon, { backgroundColor: "rgba(251,191,36,0.1)" }]} onPress={() => onAdd(player, "amarilla")}>
-            <Ionicons name="square" size={20} color="#fbbf24" />
-          </TouchableOpacity>
-        )}
-        {rojaEvent ? (
-          <TouchableOpacity style={[styles.actionIcon, { backgroundColor: "#ef4444" }]} onPress={() => onRemove(rojaEvent.id)}>
-            <Ionicons name="square" size={20} color="#ffffff" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={[styles.actionIcon, { backgroundColor: "rgba(239,68,68,0.1)" }]} onPress={() => onAdd(player, "roja")}>
-            <Ionicons name="square" size={20} color="#ef4444" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { justifyContent: "center", alignItems: "center" },
@@ -727,6 +640,7 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: "row", alignItems: "center" },
   backBtn: { backgroundColor: "rgba(52,211,153,0.1)", padding: 8, borderRadius: 12, marginRight: 14 },
+  themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "900" },
   scroll: { padding: 16 },
   scoreCard: { borderRadius: 24, padding: 20, borderWidth: 1 },
