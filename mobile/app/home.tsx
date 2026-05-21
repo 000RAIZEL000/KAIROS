@@ -28,12 +28,19 @@ function getInitials(str?: string | null): string {
 }
 
 export default function HomeScreen() {
-  const { user, profilePhoto } = useAuth();
+  const { user, profilePhoto, logout } = useAuth();
   const { theme, colors, toggleTheme } = useAppTheme();
   const [torneos, setTorneos] = useState<Torneo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
+
+  const handleLogout = () => {
+    Alert.alert("Cerrar sesión", "¿Seguro que deseas salir?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Salir", style: "destructive", onPress: logout },
+    ]);
+  };
 
   const fetchTorneos = async () => {
     try {
@@ -172,6 +179,9 @@ export default function HomeScreen() {
                 size={22}
                 color={colors.textOnHeader}
               />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
+              <Ionicons name="log-out-outline" size={22} color={colors.textOnHeader} />
             </TouchableOpacity>
           </View>
         </View>

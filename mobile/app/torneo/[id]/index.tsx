@@ -142,7 +142,10 @@ function DashboardItem({ title, subtitle, icon, color, onPress }: any) {
         <Ionicons name={icon} size={28} color={color} />
       </View>
       <Text style={[styles.itemTitle, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.itemSub, { color: colors.textSecondary }]}>{subtitle}</Text>
+      <View style={styles.itemBottom}>
+        <Text style={[styles.itemSub, { color: colors.textSecondary, flex: 1 }]}>{subtitle}</Text>
+        <Ionicons name="chevron-forward" size={16} color={color} />
+      </View>
     </TouchableOpacity>
   );
 }
@@ -198,7 +201,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   itemTitle: { fontSize: 18, fontWeight: "800", color: "#064e3b" },
-  itemSub: { fontSize: 12, color: "#64748b", marginTop: 4 },
+  itemBottom: { flexDirection: "row", alignItems: "center", marginTop: 4 },
+  itemSub: { fontSize: 12, color: "#64748b" },
   infoCard: {
     backgroundColor: "#064e3b",
     borderRadius: 24,
