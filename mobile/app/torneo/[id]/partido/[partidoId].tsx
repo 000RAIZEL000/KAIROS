@@ -16,6 +16,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAppTheme } from "../../../../src/context/ThemeContext";
+import { useAuth } from "../../../../src/context/AuthContext";
 import { getPartido, updatePartido } from "../../../../src/api/partidos";
 import { getJugadoresByEquipo } from "../../../../src/api/jugadores";
 import { createEvento, getEventosByPartido, deleteEvento } from "../../../../src/api/eventos";
@@ -41,6 +42,8 @@ const TIPO_CONFIG: Record<string, { label: string; icon: string; color: string; 
 
 export default function GestionarPartidoScreen() {
   const { id: torneoId, partidoId } = useLocalSearchParams<{ id: string; partidoId: string }>();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const { theme, colors, toggleTheme } = useAppTheme();
   const [partido, setPartido] = useState<Partido | null>(null);
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -210,7 +213,9 @@ export default function GestionarPartidoScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color="#f8fafc" />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { flex: 1 }]}>Gestionar Partido</Text>
+          <Text style={[styles.headerTitle, { flex: 1 }]}>
+            {isAdmin ? "Gestionar Partido" : "Detalle del Partido"}
+          </Text>
           <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
             <Ionicons name={theme === "dark" ? "sunny-outline" : "moon-outline"} size={20} color="#f8fafc" />
           </TouchableOpacity>
@@ -229,19 +234,23 @@ export default function GestionarPartidoScreen() {
                 {partido.equipo_local?.nombre}
               </Text>
               <View style={styles.scoreControl}>
-                <TouchableOpacity
-                  style={[styles.scoreBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setGolesL(g => Math.max(0, g - 1))}
-                >
-                  <Text style={[styles.scoreBtnText, { color: colors.text }]}>−</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.scoreBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                    onPress={() => setGolesL(g => Math.max(0, g - 1))}
+                  >
+                    <Text style={[styles.scoreBtnText, { color: colors.text }]}>−</Text>
+                  </TouchableOpacity>
+                )}
                 <Text style={[styles.scoreNumber, { color: colors.accent }]}>{golesL}</Text>
-                <TouchableOpacity
-                  style={[styles.scoreBtn, { backgroundColor: colors.accent }]}
-                  onPress={() => setGolesL(g => g + 1)}
-                >
-                  <Text style={[styles.scoreBtnText, { color: colors.fabText }]}>+</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.scoreBtn, { backgroundColor: colors.accent }]}
+                    onPress={() => setGolesL(g => g + 1)}
+                  >
+                    <Text style={[styles.scoreBtnText, { color: colors.fabText }]}>+</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
@@ -253,19 +262,23 @@ export default function GestionarPartidoScreen() {
                 {partido.equipo_visitante?.nombre}
               </Text>
               <View style={styles.scoreControl}>
-                <TouchableOpacity
-                  style={[styles.scoreBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => setGolesV(g => Math.max(0, g - 1))}
-                >
-                  <Text style={[styles.scoreBtnText, { color: colors.text }]}>−</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.scoreBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                    onPress={() => setGolesV(g => Math.max(0, g - 1))}
+                  >
+                    <Text style={[styles.scoreBtnText, { color: colors.text }]}>−</Text>
+                  </TouchableOpacity>
+                )}
                 <Text style={[styles.scoreNumber, { color: colors.accent }]}>{golesV}</Text>
-                <TouchableOpacity
-                  style={[styles.scoreBtn, { backgroundColor: colors.accent }]}
-                  onPress={() => setGolesV(g => g + 1)}
-                >
-                  <Text style={[styles.scoreBtnText, { color: colors.fabText }]}>+</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.scoreBtn, { backgroundColor: colors.accent }]}
+                    onPress={() => setGolesV(g => g + 1)}
+                  >
+                    <Text style={[styles.scoreBtnText, { color: colors.fabText }]}>+</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -278,35 +291,43 @@ export default function GestionarPartidoScreen() {
             <View style={styles.tarjetasSide}>
               <View style={styles.tarjetaControl}>
                 <Text style={styles.cardEmoji}>🟨</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => removeTarjeta(partido.equipo_local_id, "amarilla")}
-                >
-                  <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                    onPress={() => removeTarjeta(partido.equipo_local_id, "amarilla")}
+                  >
+                    <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
+                  </TouchableOpacity>
+                )}
                 <Text style={[styles.cardCount, { color: "#fbbf24" }]}>{amarillasL}</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: "#fbbf24" }]}
-                  onPress={() => openTarjetaModal("amarilla", jugadoresLocal, partido.equipo_local_id)}
-                >
-                  <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: "#fbbf24" }]}
+                    onPress={() => openTarjetaModal("amarilla", jugadoresLocal, partido.equipo_local_id)}
+                  >
+                    <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
+                  </TouchableOpacity>
+                )}
               </View>
               <View style={styles.tarjetaControl}>
                 <Text style={styles.cardEmoji}>🟥</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => removeTarjeta(partido.equipo_local_id, "roja")}
-                >
-                  <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                    onPress={() => removeTarjeta(partido.equipo_local_id, "roja")}
+                  >
+                    <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
+                  </TouchableOpacity>
+                )}
                 <Text style={[styles.cardCount, { color: "#ef4444" }]}>{rojasL}</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: "#ef4444" }]}
-                  onPress={() => openTarjetaModal("roja", jugadoresLocal, partido.equipo_local_id)}
-                >
-                  <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: "#ef4444" }]}
+                    onPress={() => openTarjetaModal("roja", jugadoresLocal, partido.equipo_local_id)}
+                  >
+                    <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
@@ -316,35 +337,43 @@ export default function GestionarPartidoScreen() {
             <View style={styles.tarjetasSide}>
               <View style={styles.tarjetaControl}>
                 <Text style={styles.cardEmoji}>🟨</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => removeTarjeta(partido.equipo_visitante_id, "amarilla")}
-                >
-                  <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                    onPress={() => removeTarjeta(partido.equipo_visitante_id, "amarilla")}
+                  >
+                    <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
+                  </TouchableOpacity>
+                )}
                 <Text style={[styles.cardCount, { color: "#fbbf24" }]}>{amarillasV}</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: "#fbbf24" }]}
-                  onPress={() => openTarjetaModal("amarilla", jugadoresVisit, partido.equipo_visitante_id)}
-                >
-                  <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: "#fbbf24" }]}
+                    onPress={() => openTarjetaModal("amarilla", jugadoresVisit, partido.equipo_visitante_id)}
+                  >
+                    <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
+                  </TouchableOpacity>
+                )}
               </View>
               <View style={styles.tarjetaControl}>
                 <Text style={styles.cardEmoji}>🟥</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  onPress={() => removeTarjeta(partido.equipo_visitante_id, "roja")}
-                >
-                  <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                    onPress={() => removeTarjeta(partido.equipo_visitante_id, "roja")}
+                  >
+                    <Text style={[styles.cardBtnText, { color: colors.text }]}>−</Text>
+                  </TouchableOpacity>
+                )}
                 <Text style={[styles.cardCount, { color: "#ef4444" }]}>{rojasV}</Text>
-                <TouchableOpacity
-                  style={[styles.cardBtn, { backgroundColor: "#ef4444" }]}
-                  onPress={() => openTarjetaModal("roja", jugadoresVisit, partido.equipo_visitante_id)}
-                >
-                  <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity
+                    style={[styles.cardBtn, { backgroundColor: "#ef4444" }]}
+                    onPress={() => openTarjetaModal("roja", jugadoresVisit, partido.equipo_visitante_id)}
+                  >
+                    <Text style={[styles.cardBtnText, { color: "#fff" }]}>+</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
@@ -352,45 +381,55 @@ export default function GestionarPartidoScreen() {
           {/* Estado */}
           <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Estado del Partido</Text>
-          <View style={styles.statusRow}>
-            {["Pendiente", "En juego", "Finalizado"].map(s => (
-              <TouchableOpacity
-                key={s}
-                style={[
-                  styles.statusOption,
-                  { backgroundColor: colors.surface, borderColor: colors.cardBorder },
-                  estado === s && { backgroundColor: colors.accent, borderColor: colors.accent },
-                ]}
-                onPress={() => setEstado(s)}
-              >
-                <Text style={[
-                  styles.statusOptionText,
-                  { color: colors.textSecondary },
-                  estado === s && { color: colors.fabText },
-                ]}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {isAdmin ? (
+            <View style={styles.statusRow}>
+              {["Pendiente", "En juego", "Finalizado"].map(s => (
+                <TouchableOpacity
+                  key={s}
+                  style={[
+                    styles.statusOption,
+                    { backgroundColor: colors.surface, borderColor: colors.cardBorder },
+                    estado === s && { backgroundColor: colors.accent, borderColor: colors.accent },
+                  ]}
+                  onPress={() => setEstado(s)}
+                >
+                  <Text style={[
+                    styles.statusOptionText,
+                    { color: colors.textSecondary },
+                    estado === s && { color: colors.fabText },
+                  ]}>{s}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={[styles.statusBadgeReadOnly, { backgroundColor: colors.accentSoft }]}>
+              <Text style={[styles.statusOptionText, { color: colors.accent, fontWeight: "800" }]}>{estado}</Text>
+            </View>
+          )}
 
-          <TouchableOpacity
-            style={[styles.updateBtn, { backgroundColor: colors.accent }, actionLoading && { opacity: 0.7 }]}
-            onPress={handleUpdateScore}
-            disabled={actionLoading}
-          >
-            {actionLoading
-              ? <ActivityIndicator color={colors.fabText} />
-              : <Text style={[styles.updateBtnText, { color: colors.fabText }]}>Guardar Marcador y Estado</Text>
-            }
-          </TouchableOpacity>
+          {isAdmin && (
+            <TouchableOpacity
+              style={[styles.updateBtn, { backgroundColor: colors.accent }, actionLoading && { opacity: 0.7 }]}
+              onPress={handleUpdateScore}
+              disabled={actionLoading}
+            >
+              {actionLoading
+                ? <ActivityIndicator color={colors.fabText} />
+                : <Text style={[styles.updateBtnText, { color: colors.fabText }]}>Guardar Marcador y Estado</Text>
+              }
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* ── Sucesos del Partido ── */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Sucesos del Partido</Text>
-          <TouchableOpacity style={[styles.addSucesoBtn, { backgroundColor: colors.accent }]} onPress={openSucesosModal}>
-            <Ionicons name="add" size={16} color={colors.fabText} />
-            <Text style={[styles.addSucesoBtnText, { color: colors.fabText }]}>Agregar Suceso</Text>
-          </TouchableOpacity>
+          {isAdmin && (
+            <TouchableOpacity style={[styles.addSucesoBtn, { backgroundColor: colors.accent }]} onPress={openSucesosModal}>
+              <Ionicons name="add" size={16} color={colors.fabText} />
+              <Text style={[styles.addSucesoBtnText, { color: colors.fabText }]}>Agregar Suceso</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={[styles.eventsCard, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1 }]}>
@@ -422,9 +461,11 @@ export default function GestionarPartidoScreen() {
                     {jugador ? `${jugador.nombre} ${jugador.apellido}` : equipoNombre ?? "—"}
                   </Text>
                 </View>
-                <TouchableOpacity onPress={() => handleDeleteEvento(ev.id)}>
-                  <Ionicons name="close-circle" size={20} color={colors.danger} />
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity onPress={() => handleDeleteEvento(ev.id)}>
+                    <Ionicons name="close-circle" size={20} color={colors.danger} />
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })}
@@ -670,6 +711,7 @@ const styles = StyleSheet.create({
 
   // Estado
   statusRow: { flexDirection: "row", gap: 10 },
+  statusBadgeReadOnly: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, alignSelf: "flex-start" },
   statusOption: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1 },
   statusOptionText: { fontSize: 12, fontWeight: "700" },
   updateBtn: { borderRadius: 14, height: 52, justifyContent: "center", alignItems: "center", marginTop: 20 },

@@ -52,7 +52,6 @@ export default function PartidosScreen() {
       style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
       activeOpacity={0.8}
       onPress={() =>
-        user?.role === "admin" &&
         router.push({
           pathname: "/torneo/[id]/partido/[partidoId]",
           params: { id: String(id), partidoId: String(item.id) },
@@ -67,9 +66,7 @@ export default function PartidosScreen() {
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.estado) }]}>
             <Text style={[styles.statusText, { color: colors.textOnHeader }]}>{item.estado}</Text>
           </View>
-          {user?.role === "admin" && (
-            <Ionicons name="chevron-forward" size={16} color={colors.accent} />
-          )}
+          <Ionicons name="chevron-forward" size={16} color={colors.accent} />
         </View>
       </View>
 
@@ -100,12 +97,12 @@ export default function PartidosScreen() {
         </View>
       )}
 
-      {user?.role === "admin" && (
-        <View style={styles.adminHint}>
-          <Ionicons name="settings-outline" size={14} color={colors.accent} />
-          <Text style={[styles.adminHintText, { color: colors.accent }]}>Toca para gestionar resultados y eventos</Text>
-        </View>
-      )}
+      <View style={styles.adminHint}>
+        <Ionicons name={user?.role === "admin" ? "settings-outline" : "eye-outline"} size={14} color={colors.accent} />
+        <Text style={[styles.adminHintText, { color: colors.accent }]}>
+          {user?.role === "admin" ? "Gestionar resultados y eventos" : "Ver sucesos del partido"}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 

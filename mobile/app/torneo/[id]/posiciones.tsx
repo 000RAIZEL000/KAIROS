@@ -16,6 +16,22 @@ import { useAppTheme } from "../../../src/context/ThemeContext";
 import { getTablaPosiciones, getGoleadores, getTarjetas } from "../../../src/api/stats";
 import type { TablaRow, GoleadorRow, TarjetaRow } from "../../../src/api/stats";
 
+function getInitials(name: string): string {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.substring(0, 2).toUpperCase();
+}
+
+function getMedal(index: number): string | null {
+  if (index === 0) return "🥇";
+  if (index === 1) return "🥈";
+  if (index === 2) return "🥉";
+  return null;
+}
+
+const AVATAR_COLORS = ["#059669", "#0891b2", "#7c3aed", "#dc2626", "#d97706", "#4f46e5"];
+
 export default function PosicionesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme, colors, toggleTheme } = useAppTheme();
@@ -76,7 +92,7 @@ export default function PosicionesScreen() {
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && { color: colors.fabText }]}>
-                {tab === "tabla" ? "Tabla" : tab === "goleadores" ? "Gls" : "Tarj."}
+                {tab === "tabla" ? "Tabla" : tab === "goleadores" ? "Gols" : "Tarj."}
               </Text>
             </TouchableOpacity>
           ))}
@@ -90,99 +106,192 @@ export default function PosicionesScreen() {
       ) : (
         <ScrollView
           style={styles.content}
+          contentContainerStyle={{ paddingBottom: 40 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         >
-          {activeTab === "tabla" ? (
+
+          {/* ── TABLA ── */}
+          {activeTab === "tabla" && (
             <View style={[styles.tableCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-              <View style={[styles.tableHeader, { borderBottomColor: colors.cardBorder }]}>
-                <Text style={[styles.columnLabel, { flex: 4, color: colors.accent }]}>Equipo</Text>
-                <Text style={[styles.columnLabel, { flex: 1, textAlign: "center", color: colors.accent }]}>PJ</Text>
-                <Text style={[styles.columnLabel, { flex: 1, textAlign: "center", color: colors.accent }]}>DG</Text>
-                <Text style={[styles.columnLabel, { flex: 1, textAlign: "center", color: colors.accent }]}>PTS</Text>
-              </View>
-
-              {tabla.map((row, index) => (
-                <View key={row.equipo_id || index} style={[styles.tableRow, { borderBottomColor: colors.cardFooterBorder }]}>
-                  <View style={{ flex: 4, flexDirection: "row", alignItems: "center" }}>
-                    <Text style={[styles.rankText, { color: colors.accent }]}>{index + 1}</Text>
-                    <Text style={[styles.equipoName, { color: colors.text }]} numberOfLines={1}>
-                      {row.equipo}
-                    </Text>
-                  </View>
-                  <Text style={[styles.columnText, { flex: 1, textAlign: "center", color: colors.textSecondary }]}>{row.pj}</Text>
-                  <Text style={[styles.columnText, { flex: 1, textAlign: "center", color: (row.dg || 0) >= 0 ? "#22c55e" : "#ef4444" }]}>
-                    {(row.dg || 0) > 0 ? `+${row.dg}` : row.dg}
-                  </Text>
-                  <Text style={[styles.columnText, { flex: 1, textAlign: "center", fontWeight: "800", color: colors.accent }]}>
-                    {row.pts}
-                  </Text>
-                </View>
-              ))}
-
-              {tabla.length === 0 && (
-                <View style={styles.emptyState}>
-                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay datos disponibles aún.</Text>
-                </View>
-              )}
-            </View>
-          ) : activeTab === "goleadores" ? (
-            <View style={styles.goleadoresContainer}>
-              {goleadores.map((player, index) => (
-                <View key={`gol-${player.jugador_id || index}`} style={[styles.playerCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-                  <View style={[styles.rankBadge, { backgroundColor: colors.accentSoft }]}>
-                    <Text style={[styles.rankBadgeText, { color: colors.accent }]}>{index + 1}</Text>
-                  </View>
-                  <View style={styles.playerInfo}>
-                    <Text style={[styles.playerName, { color: colors.text }]}>{player.jugador}</Text>
-                    <Text style={[styles.playerEquipo, { color: colors.textSecondary }]}>{player.equipo}</Text>
-                  </View>
-                  <View style={[styles.goalBadge, { backgroundColor: colors.accentSoft }]}>
-                    <Text style={[styles.goalCount, { color: colors.accent }]}>{player.goles}</Text>
-                    <Text style={[styles.goalLabel, { color: colors.accent }]}>goles</Text>
-                  </View>
-                </View>
-              ))}
-
-              {goleadores.length === 0 && (
-                <View style={styles.emptyState}>
-                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay registros de goles aún.</Text>
-                </View>
-              )}
-            </View>
-          ) : (
-            <View style={styles.goleadoresContainer}>
-              {tarjetas.map((player, index) => (
-                <View key={`tarj-${player.jugador_id || index}`} style={[styles.playerCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-                  <View style={styles.playerInfo}>
-                    <Text style={[styles.playerName, { color: colors.text }]}>{player.jugador}</Text>
-                    <Text style={[styles.playerEquipo, { color: colors.textSecondary }]}>{player.equipo}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View>
+                  {/* Header */}
+                  <View style={[styles.tableHeaderRow, { borderBottomColor: colors.cardBorder }]}>
+                    <Text style={[styles.colEquipo, styles.colLabel, { color: colors.accent }]}>Equipo</Text>
+                    {(["PJ","PG","PE","PP","GF","GC","DG","PTS"] as const).map(col => (
+                      <Text
+                        key={col}
+                        style={[
+                          col === "PTS" ? styles.colPts : styles.colStat,
+                          styles.colLabel,
+                          { color: colors.accent },
+                        ]}
+                      >
+                        {col}
+                      </Text>
+                    ))}
                   </View>
 
-                  <View style={styles.cardIndicatorRow}>
-                    {player.amarillas > 0 && (
-                      <View style={[styles.cardItem, { backgroundColor: 'rgba(234, 179, 8, 0.15)', borderColor: '#eab308' }]}>
-                        <View style={[styles.cardBox, { backgroundColor: '#eab308' }]} />
-                        <Text style={[styles.cardCount, { color: '#eab308' }]}>{player.amarillas}</Text>
+                  {tabla.length === 0 ? (
+                    <View style={styles.emptyState}>
+                      <Ionicons name="trophy-outline" size={40} color={colors.textMuted} />
+                      <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin datos disponibles aún.</Text>
+                    </View>
+                  ) : tabla.map((row, index) => (
+                    <View
+                      key={row.equipo_id ?? index}
+                      style={[
+                        styles.tableDataRow,
+                        { borderBottomColor: colors.cardFooterBorder },
+                        index === tabla.length - 1 && { borderBottomWidth: 0 },
+                        index < 3 && { backgroundColor: colors.accentSoft + "60" },
+                      ]}
+                    >
+                      <View style={styles.colEquipo}>
+                        <Text style={[styles.rankNum, { color: colors.accent }]}>{index + 1}</Text>
+                        <Text style={[styles.equipoNameText, { color: colors.text }]} numberOfLines={1}>
+                          {row.equipo}
+                        </Text>
                       </View>
-                    )}
-
-                    {player.rojas > 0 && (
-                      <View style={[styles.cardItem, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#ef4444' }]}>
-                        <View style={[styles.cardBox, { backgroundColor: '#ef4444' }]} />
-                        <Text style={[styles.cardCount, { color: '#ef4444' }]}>{player.rojas}</Text>
-                      </View>
-                    )}
-                  </View>
+                      <Text style={[styles.colStat, styles.colText, { color: colors.textSecondary }]}>{row.pj}</Text>
+                      <Text style={[styles.colStat, styles.colText, { color: "#22c55e", fontWeight: "700" }]}>{row.pg}</Text>
+                      <Text style={[styles.colStat, styles.colText, { color: colors.textSecondary }]}>{row.pe}</Text>
+                      <Text style={[styles.colStat, styles.colText, { color: "#ef4444" }]}>{row.pp}</Text>
+                      <Text style={[styles.colStat, styles.colText, { color: colors.textSecondary }]}>{row.gf}</Text>
+                      <Text style={[styles.colStat, styles.colText, { color: colors.textSecondary }]}>{row.gc}</Text>
+                      <Text style={[styles.colStat, styles.colText, { color: (row.dg ?? 0) >= 0 ? "#22c55e" : "#ef4444" }]}>
+                        {(row.dg ?? 0) > 0 ? `+${row.dg}` : row.dg}
+                      </Text>
+                      <Text style={[styles.colPts, styles.colText, { color: colors.accent, fontWeight: "900", fontSize: 15 }]}>
+                        {row.pts}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-
-              {tarjetas.length === 0 && (
-                <View style={styles.emptyState}>
-                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>No hay registros de tarjetas aún.</Text>
-                </View>
-              )}
+              </ScrollView>
             </View>
           )}
+
+          {/* ── GOLEADORES ── */}
+          {activeTab === "goleadores" && (
+            <View>
+              {goleadores.length === 0 ? (
+                <View style={[styles.emptyState, { marginTop: 60 }]}>
+                  <Ionicons name="football-outline" size={52} color={colors.textMuted} />
+                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin registros de goles aún.</Text>
+                </View>
+              ) : goleadores.map((player, index) => {
+                const medal = getMedal(index);
+                const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length];
+                return (
+                  <View
+                    key={`gol-${player.jugador_id ?? index}`}
+                    style={[
+                      styles.playerCard,
+                      { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                      index < 3 && { borderColor: index === 0 ? "#f59e0b" : index === 1 ? "#94a3b8" : "#b45309" },
+                    ]}
+                  >
+                    <View style={styles.rankCol}>
+                      {medal ? (
+                        <Text style={styles.medalText}>{medal}</Text>
+                      ) : (
+                        <View style={[styles.rankBadge, { backgroundColor: colors.accentSoft }]}>
+                          <Text style={[styles.rankBadgeText, { color: colors.accent }]}>{index + 1}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={[styles.avatarCircle, { backgroundColor: avatarColor + "28" }]}>
+                      <Text style={[styles.avatarText, { color: avatarColor }]}>
+                        {getInitials(player.jugador)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.playerInfo}>
+                      <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
+                        {player.jugador}
+                      </Text>
+                      <Text style={[styles.playerEquipo, { color: colors.textSecondary }]} numberOfLines={1}>
+                        {player.equipo ?? "—"}
+                      </Text>
+                    </View>
+
+                    <View style={[styles.goalBadge, { backgroundColor: colors.accentSoft }]}>
+                      <Text style={[styles.goalCount, { color: colors.accent }]}>{player.goles}</Text>
+                      <Text style={[styles.goalLabel, { color: colors.accent }]}>gols</Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {/* ── TARJETAS ── */}
+          {activeTab === "tarjetas" && (
+            <View>
+              {tarjetas.length === 0 ? (
+                <View style={[styles.emptyState, { marginTop: 60 }]}>
+                  <Ionicons name="square-outline" size={52} color={colors.textMuted} />
+                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin registros de tarjetas aún.</Text>
+                </View>
+              ) : tarjetas.map((player, index) => {
+                const medal = getMedal(index);
+                const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length];
+                return (
+                  <View
+                    key={`tarj-${player.jugador_id ?? index}`}
+                    style={[
+                      styles.playerCard,
+                      { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                      index < 3 && { borderColor: index === 0 ? "#f59e0b" : index === 1 ? "#94a3b8" : "#b45309" },
+                    ]}
+                  >
+                    <View style={styles.rankCol}>
+                      {medal ? (
+                        <Text style={styles.medalText}>{medal}</Text>
+                      ) : (
+                        <View style={[styles.rankBadge, { backgroundColor: "rgba(239,68,68,0.12)" }]}>
+                          <Text style={[styles.rankBadgeText, { color: "#ef4444" }]}>{index + 1}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={[styles.avatarCircle, { backgroundColor: avatarColor + "28" }]}>
+                      <Text style={[styles.avatarText, { color: avatarColor }]}>
+                        {getInitials(player.jugador)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.playerInfo}>
+                      <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
+                        {player.jugador}
+                      </Text>
+                      <Text style={[styles.playerEquipo, { color: colors.textSecondary }]} numberOfLines={1}>
+                        {player.equipo ?? "—"}
+                      </Text>
+                    </View>
+
+                    <View style={styles.cardIndicatorRow}>
+                      {player.amarillas > 0 && (
+                        <View style={[styles.cardChip, { backgroundColor: "rgba(234,179,8,0.15)", borderColor: "#eab308" }]}>
+                          <View style={[styles.cardBox, { backgroundColor: "#eab308" }]} />
+                          <Text style={[styles.cardCount, { color: "#eab308" }]}>{player.amarillas}</Text>
+                        </View>
+                      )}
+                      {player.rojas > 0 && (
+                        <View style={[styles.cardChip, { backgroundColor: "rgba(239,68,68,0.15)", borderColor: "#ef4444" }]}>
+                          <View style={[styles.cardBox, { backgroundColor: "#ef4444" }]} />
+                          <Text style={[styles.cardCount, { color: "#ef4444" }]}>{player.rojas}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
         </ScrollView>
       )}
     </View>
@@ -200,89 +309,82 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  backBtn: {
-    backgroundColor: "rgba(52,211,153,0.1)",
-    padding: 8,
-    borderRadius: 12,
-    marginRight: 14,
-  },
+  backBtn: { backgroundColor: "rgba(52,211,153,0.1)", padding: 8, borderRadius: 12, marginRight: 14 },
   themeBtn: { backgroundColor: "rgba(255,255,255,0.1)", padding: 10, borderRadius: 12, marginLeft: 8 },
   headerTitle: { color: "#f8fafc", fontSize: 24, fontWeight: "900" },
-  tabContainer: {
-    flexDirection: "row",
-    borderRadius: 20,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 16,
-  },
+  tabContainer: { flexDirection: "row", borderRadius: 20, padding: 4 },
+  tab: { flex: 1, paddingVertical: 10, alignItems: "center", borderRadius: 16 },
   tabText: { color: "#a7f3d0", fontWeight: "700", fontSize: 14 },
   content: { flex: 1, padding: 16 },
-  tableCard: {
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-  },
-  tableHeader: {
+
+  // Tabla
+  tableCard: { borderRadius: 20, padding: 16, borderWidth: 1, overflow: "hidden" },
+  tableHeaderRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    paddingBottom: 12,
-    marginBottom: 12,
+    paddingBottom: 10,
+    marginBottom: 4,
+    alignItems: "center",
   },
-  columnLabel: { fontSize: 12, fontWeight: "800", textTransform: "uppercase" },
-  tableRow: {
+  tableDataRow: {
     flexDirection: "row",
-    paddingVertical: 14,
+    paddingVertical: 11,
     borderBottomWidth: 1,
     alignItems: "center",
   },
-  rankText: { fontWeight: "800", fontSize: 13, marginRight: 8, width: 22 },
-  equipoName: { fontWeight: "700", fontSize: 15 },
-  columnText: { fontWeight: "600", fontSize: 14 },
-  emptyState: { alignItems: "center", paddingVertical: 40 },
-  emptyText: { fontSize: 16 },
-  goleadoresContainer: { paddingBottom: 40 },
+  colEquipo: { width: 128, flexDirection: "row", alignItems: "center" },
+  colStat: { width: 34, textAlign: "center" },
+  colPts: { width: 38, textAlign: "center" },
+  colLabel: { fontSize: 11, fontWeight: "800", textTransform: "uppercase" },
+  colText: { fontSize: 13, fontWeight: "600" },
+  rankNum: { fontWeight: "900", fontSize: 13, width: 22 },
+  equipoNameText: { fontWeight: "700", fontSize: 13, flex: 1 },
+
+  // Empty
+  emptyState: { alignItems: "center", paddingVertical: 32 },
+  emptyText: { fontSize: 15, marginTop: 10, textAlign: "center" },
+
+  // Player cards
   playerCard: {
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    marginBottom: 10,
     borderWidth: 1,
   },
-  rankBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  rankCol: { width: 38, alignItems: "center", marginRight: 6 },
+  medalText: { fontSize: 24 },
+  rankBadge: { width: 30, height: 30, borderRadius: 15, justifyContent: "center", alignItems: "center" },
+  rankBadgeText: { fontWeight: "900", fontSize: 13 },
+  avatarCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 12,
   },
-  rankBadgeText: { fontWeight: "900" },
-  playerInfo: { flex: 1 },
-  playerName: { fontSize: 16, fontWeight: "700" },
-  playerEquipo: { fontSize: 13, marginTop: 2 },
-  goalBadge: {
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-  },
+  avatarText: { fontWeight: "800", fontSize: 14 },
+  playerInfo: { flex: 1, marginRight: 8 },
+  playerName: { fontSize: 15, fontWeight: "700" },
+  playerEquipo: { fontSize: 12, marginTop: 2 },
+
+  // Goleadores
+  goalBadge: { alignItems: "center", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, minWidth: 52 },
   goalCount: { fontSize: 20, fontWeight: "900" },
   goalLabel: { fontSize: 10, fontWeight: "700" },
-  cardIndicatorRow: { flexDirection: "row", alignItems: "center" },
-  cardItem: {
+
+  // Tarjetas
+  cardIndicatorRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  cardChip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderRadius: 8,
     borderWidth: 1,
-    marginLeft: 8,
   },
-  cardBox: { width: 12, height: 16, borderRadius: 2, marginRight: 6 },
-  cardCount: { fontSize: 16, fontWeight: "800" },
+  cardBox: { width: 10, height: 14, borderRadius: 2, marginRight: 5 },
+  cardCount: { fontSize: 15, fontWeight: "800" },
 });
