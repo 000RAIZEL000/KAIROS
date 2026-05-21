@@ -24,6 +24,7 @@ from apps.equipos.views import EquipoViewSet
 from apps.jugadores.views import JugadorViewSet
 from apps.partidos.views import PartidoViewSet
 from apps.eventos.views import EventoPartidoViewSet
+from apps.insignias.views import InsigniaViewSet
 
 router = DefaultRouter()
 router.register(r'torneos', TorneoViewSet, basename='torneo')
@@ -31,6 +32,7 @@ router.register(r'equipos', EquipoViewSet, basename='equipo')
 router.register(r'jugadores', JugadorViewSet, basename='jugador')
 router.register(r'partidos', PartidoViewSet, basename='partido')
 router.register(r'eventos', EventoPartidoViewSet, basename='evento')
+router.register(r'insignias', InsigniaViewSet, basename='insignia')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

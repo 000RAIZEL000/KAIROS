@@ -20,6 +20,8 @@ import { useAuth } from "../../../../src/context/AuthContext";
 import { getPartido, updatePartido } from "../../../../src/api/partidos";
 import { getJugadoresByEquipo } from "../../../../src/api/jugadores";
 import { createEvento, getEventosByPartido, deleteEvento } from "../../../../src/api/eventos";
+import { createInsignia, INSIGNIA_CONFIG } from "../../../../src/api/insignias";
+import type { TipoInsignia } from "../../../../src/api/insignias";
 import type { Partido } from "../../../../src/api/partidos";
 import type { Jugador } from "../../../../src/api/jugadores";
 import type { Evento } from "../../../../src/api/eventos";
@@ -61,6 +63,40 @@ export default function GestionarPartidoScreen() {
   const [tarjetaJugador, setTarjetaJugador] = useState<Jugador | null>(null);
   const [tarjetaMinuto, setTarjetaMinuto] = useState("");
   const [tarjetaSaving, setTarjetaSaving] = useState(false);
+
+  // Modal: dar insignia
+  const [insigniaVisible, setInsigniaVisible] = useState(false);
+  const [insJugador, setInsJugador] = useState<Jugador | null>(null);
+  const [insTipo, setInsTipo] = useState<TipoInsignia>("mvp_partido");
+  const [insSaving, setInsSaving] = useState(false);
+
+  const allJugadores = [...jugadoresLocal, ...jugadoresVisit];
+
+  const openInsigniaModal = () => {
+    setInsJugador(null);
+    setInsTipo("mvp_partido");
+    setInsigniaVisible(true);
+  };
+
+  const handleSaveInsignia = async () => {
+    if (!partido) return;
+    if (!insJugador) { Alert.alert("Selecciona un jugador"); return; }
+    try {
+      setInsSaving(true);
+      await createInsignia({
+        jugador: insJugador.id,
+        tipo: insTipo,
+        torneo: Number(torneoId),
+        partido: Number(partidoId),
+      });
+      setInsigniaVisible(false);
+      Alert.alert("¡Insignia otorgada!", `${insJugador.nombre} recibió ${INSIGNIA_CONFIG[insTipo].label} ${INSIGNIA_CONFIG[insTipo].emoji}`);
+    } catch {
+      Alert.alert("Error", "No se pudo otorgar la insignia.");
+    } finally {
+      setInsSaving(false);
+    }
+  };
 
   // Modal: agregar suceso
   const [sucesosVisible, setSucesosVisible] = useState(false);
@@ -425,10 +461,16 @@ export default function GestionarPartidoScreen() {
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Sucesos del Partido</Text>
           {isAdmin && (
-            <TouchableOpacity style={[styles.addSucesoBtn, { backgroundColor: colors.accent }]} onPress={openSucesosModal}>
-              <Ionicons name="add" size={16} color={colors.fabText} />
-              <Text style={[styles.addSucesoBtnText, { color: colors.fabText }]}>Agregar Suceso</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <TouchableOpacity style={[styles.addSucesoBtn, { backgroundColor: "#f59e0b" }]} onPress={openInsigniaModal}>
+                <Text style={{ fontSize: 14 }}>🏆</Text>
+                <Text style={[styles.addSucesoBtnText, { color: "#fff" }]}>Insignia</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.addSucesoBtn, { backgroundColor: colors.accent }]} onPress={openSucesosModal}>
+                <Ionicons name="add" size={16} color={colors.fabText} />
+                <Text style={[styles.addSucesoBtnText, { color: colors.fabText }]}>Suceso</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -473,6 +515,83 @@ export default function GestionarPartidoScreen() {
 
         <View style={{ height: 60 }} />
       </ScrollView>
+
+      {/* ══ Modal: Dar Insignia ══ */}
+      <Modal visible={insigniaVisible} transparent animationType="fade">
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={() => setInsigniaVisible(false)} />
+          <View style={[styles.modalBox, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>🏆 Dar Insignia</Text>
+
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Tipo de insignia</Text>
+            <View style={styles.insTipoGrid}>
+              {(Object.entries(INSIGNIA_CONFIG) as [TipoInsignia, typeof INSIGNIA_CONFIG[TipoInsignia]][]).map(([tipo, cfg]) => (
+                <TouchableOpacity
+                  key={tipo}
+                  style={[
+                    styles.insTipoBtn,
+                    { borderColor: colors.cardBorder, backgroundColor: colors.surface },
+                    insTipo === tipo && { backgroundColor: cfg.color + "33", borderColor: cfg.color },
+                  ]}
+                  onPress={() => setInsTipo(tipo)}
+                >
+                  <Text style={{ fontSize: 20 }}>{cfg.emoji}</Text>
+                  <Text style={[styles.insTipoBtnLabel, { color: insTipo === tipo ? cfg.color : colors.textSecondary }]}>
+                    {cfg.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Seleccionar jugador</Text>
+            <ScrollView style={styles.modalPlayerList} nestedScrollEnabled>
+              {allJugadores.length === 0 && (
+                <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin jugadores en este partido.</Text>
+              )}
+              {allJugadores.map(j => (
+                <TouchableOpacity
+                  key={j.id}
+                  style={[
+                    styles.modalPlayerOption,
+                    { borderColor: colors.cardBorder },
+                    insJugador?.id === j.id && { backgroundColor: colors.accentSoft, borderColor: colors.accent },
+                  ]}
+                  onPress={() => setInsJugador(j)}
+                >
+                  <Text style={[styles.modalPlayerName, { color: colors.text }]}>
+                    {j.numero_camiseta ? `#${j.numero_camiseta}  ` : ""}{j.nombre} {j.apellido}
+                  </Text>
+                  {insJugador?.id === j.id && (
+                    <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                onPress={() => setInsigniaVisible(false)}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.textSecondary }]}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: "#f59e0b" }, insSaving && { opacity: 0.7 }]}
+                onPress={handleSaveInsignia}
+                disabled={insSaving}
+              >
+                {insSaving
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Text style={[styles.modalBtnText, { color: "#fff" }]}>Otorgar</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       {/* ══ Modal: Asignar Tarjeta con Jugador ══ */}
       <Modal visible={tarjetaModal !== null} transparent animationType="fade">
@@ -770,4 +889,9 @@ const styles = StyleSheet.create({
   sucEquipoRow: { flexDirection: "row", gap: 10 },
   sucEquipoBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1 },
   sucEquipoBtnText: { fontSize: 12, fontWeight: "700" },
+
+  // Insignia modal
+  insTipoGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 4 },
+  insTipoBtn: { width: "30%", alignItems: "center", paddingVertical: 10, borderRadius: 12, borderWidth: 1.5, gap: 4 },
+  insTipoBtnLabel: { fontSize: 10, fontWeight: "700", textAlign: "center" },
 });

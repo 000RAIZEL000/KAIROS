@@ -15,6 +15,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAppTheme } from "../../../src/context/ThemeContext";
 import { getTablaPosiciones, getGoleadores, getTarjetas } from "../../../src/api/stats";
 import type { TablaRow, GoleadorRow, TarjetaRow } from "../../../src/api/stats";
+import { getInsignias, INSIGNIA_CONFIG } from "../../../src/api/insignias";
+import type { Insignia } from "../../../src/api/insignias";
 
 function getInitials(name: string): string {
   if (!name) return "?";
@@ -38,21 +40,24 @@ export default function PosicionesScreen() {
   const [tabla, setTabla] = useState<TablaRow[]>([]);
   const [goleadores, setGoleadores] = useState<GoleadorRow[]>([]);
   const [tarjetas, setTarjetas] = useState<TarjetaRow[]>([]);
+  const [insignias, setInsignias] = useState<Insignia[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"tabla" | "goleadores" | "tarjetas">("tabla");
+  const [activeTab, setActiveTab] = useState<"tabla" | "goleadores" | "tarjetas" | "insignias">("tabla");
 
   const cargarDatos = async () => {
     try {
       const tId = String(id);
-      const [tablaData, goleadoresData, tarjetasData] = await Promise.all([
+      const [tablaData, goleadoresData, tarjetasData, insigniasData] = await Promise.all([
         getTablaPosiciones(tId),
         getGoleadores(tId),
         getTarjetas(tId),
+        getInsignias({ torneo_id: Number(tId) }),
       ]);
       setTabla(Array.isArray(tablaData) ? tablaData : []);
       setGoleadores(Array.isArray(goleadoresData) ? goleadoresData : []);
       setTarjetas(Array.isArray(tarjetasData) ? tarjetasData : []);
+      setInsignias(Array.isArray(insigniasData) ? insigniasData : []);
     } catch (err: any) {
       console.log("ERROR stats:", err?.message);
     }
@@ -85,14 +90,14 @@ export default function PosicionesScreen() {
         </View>
 
         <View style={[styles.tabContainer, { backgroundColor: "rgba(0,0,0,0.2)" }]}>
-          {(["tabla", "goleadores", "tarjetas"] as const).map((tab) => (
+          {(["tabla", "goleadores", "tarjetas", "insignias"] as const).map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && { backgroundColor: colors.accent }]}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[styles.tabText, activeTab === tab && { color: colors.fabText }]}>
-                {tab === "tabla" ? "Tabla" : tab === "goleadores" ? "Gols" : "Tarj."}
+                {tab === "tabla" ? "Tabla" : tab === "goleadores" ? "Gols" : tab === "tarjetas" ? "Tarj." : "Ins."}
               </Text>
             </TouchableOpacity>
           ))}
@@ -292,6 +297,49 @@ export default function PosicionesScreen() {
             </View>
           )}
 
+          {/* ── INSIGNIAS ── */}
+          {activeTab === "insignias" && (
+            <View>
+              {insignias.length === 0 ? (
+                <View style={[styles.emptyState, { marginTop: 60 }]}>
+                  <Text style={{ fontSize: 52 }}>🏅</Text>
+                  <Text style={[styles.emptyText, { color: colors.textMuted }]}>Sin insignias otorgadas aún.</Text>
+                </View>
+              ) : insignias.map((ins, index) => {
+                const cfg = INSIGNIA_CONFIG[ins.tipo];
+                const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length];
+                return (
+                  <View
+                    key={ins.id}
+                    style={[styles.playerCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+                  >
+                    <View style={[styles.avatarCircle, { backgroundColor: avatarColor + "28" }]}>
+                      <Text style={[styles.avatarText, { color: avatarColor }]}>
+                        {getInitials(ins.jugador_nombre)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.playerInfo}>
+                      <Text style={[styles.playerName, { color: colors.text }]} numberOfLines={1}>
+                        {ins.jugador_nombre}
+                      </Text>
+                      {ins.torneo_nombre ? (
+                        <Text style={[styles.playerEquipo, { color: colors.textSecondary }]} numberOfLines={1}>
+                          {ins.torneo_nombre}
+                        </Text>
+                      ) : null}
+                    </View>
+
+                    <View style={[styles.insigniaBadge, { backgroundColor: cfg.color + "22", borderColor: cfg.color }]}>
+                      <Text style={{ fontSize: 20 }}>{cfg.emoji}</Text>
+                      <Text style={[styles.insigniaLabel, { color: cfg.color }]}>{cfg.label}</Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
         </ScrollView>
       )}
     </View>
@@ -387,4 +435,16 @@ const styles = StyleSheet.create({
   },
   cardBox: { width: 10, height: 14, borderRadius: 2, marginRight: 5 },
   cardCount: { fontSize: 15, fontWeight: "800" },
+
+  // Insignias
+  insigniaBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
+  },
+  insigniaLabel: { fontSize: 11, fontWeight: "800" },
 });

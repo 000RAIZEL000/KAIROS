@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {
   ActivityIndicator,
   FlatList,
@@ -9,25 +9,33 @@ import {
 } from 'react-native';
 import { useAppTheme } from '../../../../src/context/ThemeContext';
 import { getJugadoresByEquipo } from '../../../../src/api/jugadores';
+import { getInsignias, INSIGNIA_CONFIG } from '../../../../src/api/insignias';
 import type { Jugador } from '../../../../src/api/jugadores';
+import type { Insignia } from '../../../../src/api/insignias';
 
 export default function JugadoresScreen() {
   const { equipoId } = useLocalSearchParams<{ equipoId: string }>();
   const { colors } = useAppTheme();
 
   const [jugadores, setJugadores] = useState<Jugador[]>([]);
+  const [insigniasByJugador, setInsigniasByJugador] = useState<Record<number, Insignia[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const cargarJugadores = async () => {
+  const cargarDatos = async () => {
     if (!equipoId) return;
-
     try {
       setLoading(true);
       setError(null);
-
       const data = await getJugadoresByEquipo(equipoId);
       setJugadores(data);
+      if (data.length > 0) {
+        const insPromises = data.map(j => getInsignias({ jugador_id: j.id }));
+        const results = await Promise.all(insPromises);
+        const map: Record<number, Insignia[]> = {};
+        data.forEach((j, i) => { map[j.id] = results[i]; });
+        setInsigniasByJugador(map);
+      }
     } catch (err: any) {
       console.log('ERROR jugadores:', err?.message);
       setError('No se pudieron cargar los jugadores.');
@@ -36,9 +44,7 @@ export default function JugadoresScreen() {
     }
   };
 
-  useEffect(() => {
-    cargarJugadores();
-  }, [equipoId]);
+  useFocusEffect(useCallback(() => { cargarDatos(); }, [equipoId]));
 
   if (loading) {
     return (
@@ -64,18 +70,38 @@ export default function JugadoresScreen() {
       <FlatList
         data={jugadores}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <Text style={[styles.name, { color: colors.text }]}>
-              {item.numero_camiseta ? `#${item.numero_camiseta} ` : ''}
-              {item.nombre}
-            </Text>
+        renderItem={({ item }) => {
+          const playerInsignias = insigniasByJugador[item.id] ?? [];
+          return (
+            <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <Text style={[styles.name, { color: colors.text }]}>
+                {item.numero_camiseta ? `#${item.numero_camiseta} ` : ''}
+                {item.nombre} {item.apellido}
+              </Text>
 
-            {item.posicion ? (
-              <Text style={[styles.meta, { color: colors.textMuted }]}>{item.posicion}</Text>
-            ) : null}
-          </View>
-        )}
+              {item.posicion ? (
+                <Text style={[styles.meta, { color: colors.textMuted }]}>{item.posicion}</Text>
+              ) : null}
+
+              {playerInsignias.length > 0 && (
+                <View style={styles.insigniasRow}>
+                  {playerInsignias.map(ins => {
+                    const cfg = INSIGNIA_CONFIG[ins.tipo];
+                    return (
+                      <View
+                        key={ins.id}
+                        style={[styles.insigniaBadge, { backgroundColor: cfg.color + "22", borderColor: cfg.color }]}
+                      >
+                        <Text style={{ fontSize: 14 }}>{cfg.emoji}</Text>
+                        <Text style={[styles.insigniaLabel, { color: cfg.color }]}>{cfg.label}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          );
+        }}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: colors.textMuted }]}>No hay jugadores registrados.</Text>
         }
@@ -120,13 +146,33 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   meta: {
     fontSize: 14,
+    marginBottom: 8,
   },
   empty: {
     textAlign: 'center',
     marginTop: 40,
+  },
+  insigniasRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+  },
+  insigniaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  insigniaLabel: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
