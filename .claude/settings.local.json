@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py check)",
+      "Bash(python manage.py migrate)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npm install *)",
+      "Bash(node -e ' *)",
+      "Bash(Get-ChildItem *)",
+      "Bash(render --version)",
+      "Bash(where render *)",
+      "Bash(node *)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(vercel --version)",
+      "Bash(npm --version)",
+      "Bash(npm run *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\Kairos_AG_\\\\frontend\" -Force | ForEach-Object { $_.Name })",
+      "Bash(vercel whoami *)",
+      "Bash(vercel deploy *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\Kairos_AG_\\\\backend_fastapi\\\\backend\\\\apps\\\\users\\\\\" -Force | ForEach-Object { $_.FullName })",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(Select-Object FullName)",
+      "Bash(npx tsc *)",
+      "Bash(npx expo *)",
+      "PowerShell(Remove-Item *)",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}
